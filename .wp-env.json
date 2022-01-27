@@ -1,0 +1,11 @@
+{
+  "core": "https://fr.wordpress.org/wordpress-5.9.2-fr_FR.zip",
+  "plugins": [
+    "."
+  ],
+  "mappings": {
+    "wp-content/mu-plugins": "./tests/mu-plugins",
+    "wp-content/plugins": "./tests/plugins",
+    "vendor": "./vendor"
+  }
+}

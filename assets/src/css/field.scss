@@ -1,0 +1,37 @@
+@import 'node_modules/@wordpress/base-styles/variables';
+@import 'node_modules/@wordpress/base-styles/z-index';
+
+.acf-field-color-palette {
+  label {
+    display: flex !important;
+    align-items: center;
+  }
+  .component-color-indicator {
+    display: none;
+  }
+  .component-color-indicator[style] {
+    display: block;
+  }
+  .components-circular-option-picker__option-wrapper input[type='radio'] {
+    display: none;
+  }
+  input[type='radio']:checked
+    + .components-circular-option-picker__option
+    + svg {
+    display: block;
+  }
+  svg {
+    display: none;
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    border-radius: 50%;
+    z-index: z-index(
+      '.components-circular-option-picker__option.is-pressed + svg'
+    );
+    pointer-events: none;
+  }
+  .components-circular-option-picker__option:focus::after {
+    box-sizing: border-box;
+  }
+}

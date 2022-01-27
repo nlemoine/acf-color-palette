@@ -1,0 +1,20 @@
+{
+  "private": true,
+  "scripts": {
+    "start": "wp-scripts start",
+    "build": "wp-scripts build",
+    "format": "wp-scripts format ./assets/src/js",
+    "packages-update": "wp-scripts packages-update"
+  },
+  "devDependencies": {
+    "@wordpress/env": "^4.4.0",
+    "@wordpress/scripts": "^22.3.0",
+    "assets-webpack-plugin": "^7.1.1",
+    "mini-css-extract-plugin": "^2.6.0",
+    "webpack-manifest-plugin": "^5.0.0"
+  },
+  "dependencies": {
+    "@wordpress/base-styles": "^4.3.0",
+    "colord": "^2.9.2"
+  }
+}
