@@ -2,6 +2,18 @@
 @import 'node_modules/@wordpress/base-styles/z-index';
 
 .acf-field-color-palette {
+  .acf-color-palette-item:not(:first-child) {
+    margin-top: 12px;
+  }
+.components-heading {
+  margin: 0px;
+  color: rgb(5, 5, 5);
+  font-size: 11px;
+  display: block;
+  text-transform: uppercase;
+  line-height: 24px;
+  font-weight: 500;
+}
   label {
     display: flex !important;
     align-items: center;
@@ -33,5 +45,10 @@
   }
   .components-circular-option-picker__option:focus::after {
     box-sizing: border-box;
+  }
+  .components-circular-option-picker__custom-clear-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
   }
 }

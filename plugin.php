@@ -5,15 +5,15 @@
  * Plugin URI:        https://github.com/nlemoine/acf-color-palette
  * Description:       A Gutenberg like color palette field for ACF
  * Version:           0.2.0
- * Requires at least: 5.5
+ * Requires at least: 5.0
  * Requires PHP:      7.4
  * Author:            Nicolas Lemoine
  * Author URI:        https://github.com/nlemoine
  * License:           GPL v2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Update URI:        https://example.com/my-plugin/
  * Text Domain:       acf-color-palette
  * Domain Path:       /languages.
+ * GitHub Plugin URI: https://github.com/nlemoine/acf-color-palette
  */
 add_filter('after_setup_theme', new class() {
     /**
@@ -27,30 +27,22 @@ add_filter('after_setup_theme', new class() {
             return;
         }
 
-        require_once 'src/ColorPaletteField.php';
+        require_once __DIR__ . '/src/ColorPaletteField.php';
 
-        $this->register();
+        add_filter('acf/include_field_types', [$this, 'register_field']);
 
         if (defined('ACP_FILE')) {
-            $this->hookAdminColumns();
+            add_filter('ac/column/value', [$this, 'admin_column'], 10, 3);
         }
     }
 
-    /**
-     * Register the field type with ACF.
-     *
-     * @return void
-     */
-    protected function register()
+    public function register_field($acfMajorVersion)
     {
-        foreach (['acf/include_field_types', 'acf/register_fields'] as $hook) {
-            add_filter($hook, function () {
-                return new HelloNico\AcfColorPalette\ColorPaletteField(
-                    untrailingslashit(plugin_dir_url(__FILE__)),
-                    untrailingslashit(plugin_dir_path(__FILE__))
-                );
-            });
-        }
+        $field = new HelloNico\AcfColorPalette\ColorPaletteField(
+            untrailingslashit(plugin_dir_url(__FILE__)),
+            untrailingslashit(plugin_dir_path(__FILE__))
+        );
+        acf_register_field_type($field);
     }
 
     /**
@@ -59,17 +51,15 @@ add_filter('after_setup_theme', new class() {
      *
      * @return void
      */
-    protected function hookAdminColumns()
+    protected function admin_column($value, $id, $column)
     {
-        add_filter('ac/column/value', function ($value, $id, $column) {
-            if (
-                !is_a($column, '\ACA\ACF\Column')
-                || 'color_palette' !== $column->get_acf_field_option('type')
-            ) {
-                return $value;
-            }
+        if (
+            !is_a($column, '\ACA\ACF\Column')
+            || 'country' !== $column->get_acf_field_option('type')
+        ) {
+            return $value;
+        }
 
-            return get_field($column->get_meta_key()) ?? $value;
-        }, 10, 3);
+        return get_field($column->get_meta_key()) ?? $value;
     }
 });

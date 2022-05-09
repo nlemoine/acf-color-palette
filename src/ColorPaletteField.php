@@ -2,41 +2,27 @@
 
 namespace HelloNico\AcfColorPalette;
 
+use WP_Theme_JSON_Resolver;
+
 class ColorPaletteField extends \acf_field
 {
-    /**
-     * The field name.
-     *
-     * @var string
-     */
-    public $name = 'color_palette';
 
-    /**
-     * The field label.
-     *
-     * @var string
-     */
-    public $label = 'Color Palette';
-
-    /**
-     * The field category.
-     *
-     * @var string
-     */
-    public $category = 'jquery';
-
-    /**
-     * The field defaults.
-     *
-     * @var array
-     */
-    public $defaults = [
-        'exclude_colors' => [],
-        'include_colors' => [],
-        'return_format'  => 'slug',
-        'allow_null'     => false,
-        'default_value'  => null,
+    public const RETURN_SLUG = 'slug';
+    public const RETURN_ARRAY = 'array';
+    public const RETURN_NAME = 'name';
+    public const RETURN_COLOR = 'color';
+    public const RETURN_FORMATS = [
+        self::RETURN_SLUG,
+        self::RETURN_ARRAY,
+        self::RETURN_NAME,
+        self::RETURN_COLOR,
     ];
+
+    public const PALETTE_DEFAULT = 'default';
+    public const PALETTE_THEME = 'theme';
+
+    protected string $path;
+    protected string $uri;
 
     /**
      * Create a new field instance.
@@ -46,17 +32,30 @@ class ColorPaletteField extends \acf_field
      *
      * @return void
      */
-    public function __construct($uri, $path)
+    public function __construct(string $uri, string $path)
     {
         $this->uri = $uri;
         $this->path = $path;
-
         parent::__construct();
     }
 
     public function initialize()
     {
-        \add_filter('acf/get_field_label', [$this, 'add_label_indicator'], 10, 3);
+        $this->name = 'color_palette';
+        $this->label = \__('Color Palette');
+        $this->category = 'jquery';
+        $this->defaults = [
+            'palettes' => [],
+            'exclude_colors' => [],
+            'include_colors' => [],
+            'return_format'  => self::RETURN_SLUG,
+            'allow_null'     => false,
+            'default_value'  => null,
+        ];
+
+        if(is_admin()) {
+            \add_filter('acf/get_field_label', [$this, 'add_label_indicator'], 10, 3);
+        }
     }
 
     /**
@@ -96,60 +95,82 @@ class ColorPaletteField extends \acf_field
      */
     public function render_field($field)
     {
-        $colors = $this->get_colors();
+        $palettes = $this->get_palettes($field['palettes'] ?? []);
 
         // Include colors
         if (!empty($field['include_colors'])) {
-            $colors = \array_values(\array_filter($colors, function ($color) use ($field) {
-                return \in_array($color['slug'], (array) $field['include_colors'], true);
-            }));
+            $palettes = array_map(function($colors) use ($field) {
+                return \array_values(\array_filter($colors, function ($color) use ($field) {
+                    return \in_array($color['slug'], (array) $field['include_colors'], true);
+                }));
+            }, $palettes);
         }
 
         // Exclude colors
         if (!empty($field['exclude_colors'])) {
-            $colors = \array_values(\array_filter($colors, function ($color) use ($field) {
-                return !\in_array($color['slug'], (array) $field['exclude_colors'], true);
-            }));
+            $palettes = array_map(function($colors) use ($field) {
+                return \array_values(\array_filter($colors, function ($color) use ($field) {
+                    return !\in_array($color['slug'], (array) $field['exclude_colors'], true);
+                }));
+            }, $palettes);
         }
 
-        if (empty($colors)) {
+        $palettes = array_filter($palettes);
+
+        if (empty($palettes)) {
             return;
-        } ?>
-<div class="components-circular-option-picker">
-    <div class="components-circular-option-picker__swatches">
-        <?php foreach ($colors as $color) :
-            $id = $field['id'].'-'.\str_replace(' ', '-', $color['slug']); ?>
-            <div class="components-circular-option-picker__option-wrapper" data-color="<?php echo \esc_attr($color['color']); ?>">
-                <input
-                    id="<?php echo \esc_attr($id); ?>"
-                    type="radio"
-                    name="<?php echo \esc_attr($field['name']); ?>"
-                    value="<?php echo \esc_attr($color['slug']); ?>"
-                    <?php \checked($color['slug'] === $field['value']); ?>
-                />
-                <label
-                    for="<?php echo \esc_attr($id); ?>"
-                    tabindex="0"
-                    title="<?php echo \esc_attr($color['name']); ?>"
-                    aria-pressed="false"
-                    aria-label="<?php \printf(\__('Color: %s'), $color['name']); ?>"
-                    class="components-button components-circular-option-picker__option acf-js-tooltip"
-                    style="background-color:<?php echo \esc_attr($color['color']); ?>;color:<?php echo \esc_attr($color['color']); ?>;"
-                ></label>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#000" role="img" aria-hidden="true" focusable="false">
-                    <path d="M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z" />
-                </svg>
-            </div>
-        <?php endforeach; ?>
-    </div>
-        <?php if (!empty($field['allow_null'])) : ?>
-            <div class="components-circular-option-picker__custom-clear-wrapper">
-                <button type="button" class="components-button components-circular-option-picker__clear is-secondary is-small">
-                    <?php \_e('Clear color'); ?>
-                </button>
+        }
+        ?>
+<div>
+    <?php foreach($palettes as $type => $colors): ?>
+    <div class="acf-color-palette-item">
+        <?php if(!is_numeric($type) && count($palettes) !== 1): ?>
+            <div class="components-truncate components-text components-heading">
+                <?php if($type === self::PALETTE_DEFAULT): ?>
+                    <?php echo _x('Default', 'admin color scheme'); ?>
+                <?php elseif($type === self::PALETTE_THEME): ?>
+                    <?php echo __('Theme'); ?>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
+        <div class="components-circular-option-picker">
+            <div class="components-circular-option-picker__swatches">
+                <?php foreach ($colors as $color) :
+                    $id = $field['id'].'-'.\str_replace(' ', '-', $color['slug']) . '-' . $type; ?>
+                    <div class="components-circular-option-picker__option-wrapper" data-color="<?php echo \esc_attr($color['color']); ?>">
+                        <input
+                            id="<?php echo \esc_attr($id); ?>"
+                            type="radio"
+                            name="<?php echo \esc_attr($field['name']); ?>"
+                            value="<?php echo \esc_attr($color['slug']); ?>"
+                            <?php \checked($color['slug'] === $field['value']); ?>
+                        />
+                        <label
+                            for="<?php echo \esc_attr($id); ?>"
+                            tabindex="0"
+                            title="<?php echo \esc_attr($color['name']); ?>"
+                            aria-pressed="false"
+                            aria-label="<?php \printf(\__('Color: %s'), $color['name']); ?>"
+                            class="components-button components-circular-option-picker__option acf-js-tooltip"
+                            style="background-color:<?php echo \esc_attr($color['color']); ?>;color:<?php echo \esc_attr($color['color']); ?>;"
+                        ></label>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#000" role="img" aria-hidden="true" focusable="false">
+                            <path d="M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z" />
+                        </svg>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+    <?php endforeach; ?>
 </div>
+<?php if (!empty($field['allow_null'])) : ?>
+    <div class="components-circular-option-picker__custom-clear-wrapper">
+        <button type="button" class="components-button components-circular-option-picker__clear is-secondary is-small">
+            <?php \_e('Clear'); ?>
+        </button>
+    </div>
+<?php endif; ?>
         <?php
     }
 
@@ -163,8 +184,8 @@ class ColorPaletteField extends \acf_field
     public function render_field_settings($field)
     {
         $colors = [];
-        foreach ($this->get_colors() as $item) {
-            $colors[$item['slug']] = \sprintf(
+        foreach ($this->get_colors() as $color) {
+            $colors[$color['slug']] = \sprintf(
                 '<span style="display: inline-block;
                     background-color: %s;
                     width: 1.1em;
@@ -175,25 +196,24 @@ class ColorPaletteField extends \acf_field
                     vertical-align: middle;
                     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);"
                 ></span> %s',
-                $item['color'],
-                $item['name']
+                $color['color'],
+                $color['name']
             );
         }
 
-        // acf_render_field_setting($field, [
-        //     'label' => __('Color palette sources', 'acf-color-palette'),
-        //     'name' => 'palette_sources',
-        //     'instructions' => __('Select color palette sources.', 'acf-color-palette'),
-        //     'type' => 'checkbox',
-        //     'ui' => false,
-        //     'default_value' => 'theme',
-
-        //     'multiple' => true,
-        //     'choices' => [
-        //         'theme' => __('Theme colors', 'acf-color-palette'),
-        //         'custom' => __('Custom colors', 'acf-color-palette'),
-        //     ],
-        // ]);
+        acf_render_field_setting($field, [
+            'label' => __('Color palettes', 'acf-color-palette'),
+            'name' => 'palettes',
+            'instructions' => __('Select color palettes.', 'acf-color-palette'),
+            'type' => 'checkbox',
+            'ui' => false,
+            'default_value' => 'theme',
+            'multiple' => true,
+            'choices' => [
+                self::PALETTE_THEME => __('Theme'),
+                self::PALETTE_DEFAULT => _x('Default', 'Default Preset'),
+            ],
+        ]);
 
         \acf_render_field_setting($field, [
             'label'         => \__('Exclude Colors', 'acf-color-palette'),
@@ -229,10 +249,10 @@ class ColorPaletteField extends \acf_field
             'default_value' => $this->defaults['return_format'],
             'ui'            => false,
             'choices'       => [
-                'slug'  => 'Slug',
-                'array' => 'Array',
-                'color' => 'Color',
-                'name'  => 'Name',
+                self::RETURN_SLUG  => __('Slug'),
+                self::RETURN_ARRAY => __('Array'),
+                self::RETURN_COLOR => __('Color'),
+                self::RETURN_NAME => __('Name'),
             ],
         ]);
 
@@ -268,9 +288,13 @@ class ColorPaletteField extends \acf_field
      */
     public function format_value($value, $post_id, $field)
     {
+        if(empty($value) || !is_string($value)) {
+            return null;
+        }
+
         $format = $field['return_format'] ?? $this->defaults['return_format'];
 
-        return $this->get_color($value, 'array' === $format ? null : $format);
+        return $this->get_color($value, self::RETURN_ARRAY === $format ? null : $format);
     }
 
     /**
@@ -395,35 +419,102 @@ class ColorPaletteField extends \acf_field
     /**
      * Get color platte.
      */
-    protected function get_colors(): array
+    protected function get_palettes(array $palette_types = []): array
     {
-        if (\function_exists('wp_get_global_settings')) {
-            return \wp_get_global_settings(['color', 'palette', 'theme']);
+        $palettes = [];
+
+        // Validate palette types
+        $palette_types = $this->get_palette_types($palette_types);
+
+        // Theme supports theme.json
+        if(class_exists('WP_Theme_JSON_Resolver') && WP_Theme_JSON_Resolver::theme_has_support()) {
+            // One palette, get the palette type
+            // Needed to avoid merged data of WP_Theme_JSON_Resolver::get_merged_data()
+            // e.g. color of theme placed into the default palette if is the same
+            if (count($palette_types) === 1) {
+                $type = reset($palette_types);
+
+                // Get settings
+                $settings = [];
+                switch ($type) {
+                    case self::PALETTE_THEME:
+                        $settings = WP_Theme_JSON_Resolver::get_theme_data()->get_settings();
+                        break;
+                    case self::PALETTE_DEFAULT:
+                        $settings = WP_Theme_JSON_Resolver::get_core_data()->get_settings();
+                        break;
+                }
+
+                if(empty($settings)) {
+                    return $palettes;
+                }
+
+                $palettes[$type] = \_wp_array_get($settings, ['color', 'palette', $type], []);
+                return $palettes;
+            } else {
+                $settings = WP_Theme_JSON_Resolver::get_merged_data()->get_settings();
+                $palettes = \_wp_array_get($settings, ['color', 'palette'], []);
+                // "core" became "default" in 5.9
+                if (array_key_exists('core', $palettes)) {
+                    $palettes[self::PALETTE_DEFAULT] = $palettes['core'];
+                    unset($palettes['core']);
+                }
+                return $palettes;
+            }
         }
 
-        return \get_theme_support('editor-color-palette')[0] ?? [];
+        return \get_theme_support('editor-color-palette') ?? [];
+    }
+
+    /**
+     * Validate palette types
+     *
+     * @param array $types
+     * @return array
+     */
+    public function get_palette_types(array $types): array
+    {
+        return array_filter($types, function ($type) {
+            return in_array($type, [self::PALETTE_THEME, self::PALETTE_DEFAULT], true);
+        });
     }
 
     /**
      * Get color field.
      *
-     * @param string $field
+     * @param string|null $field
      *
      * @return mixed|null
      */
-    protected function get_color(string $slug, $field = null)
+    protected function get_color(string $slug, ?string $field = null)
     {
         $colors = $this->get_colors();
         if (empty($colors)) {
             return null;
         }
         foreach ($colors as $color) {
-            if ($color['slug'] === $slug) {
+            if (isset($color['slug']) && $color['slug'] === $slug) {
                 return null === $field ? $color : $color[$field] ?? null;
             }
         }
 
         return null;
+    }
+
+    /**
+     * Merge palette colors
+     *
+     * @return array
+     */
+    protected function get_colors(): array {
+        $palettes = $this->get_palettes();
+        $colors = [];
+        foreach ($palettes as $palette) {
+            foreach($palette as $color) {
+                $colors[$color['slug']] = $color;
+            }
+        }
+        return $colors;
     }
 
     /**
