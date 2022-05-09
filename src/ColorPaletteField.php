@@ -6,7 +6,6 @@ use WP_Theme_JSON_Resolver;
 
 class ColorPaletteField extends \acf_field
 {
-
     public const RETURN_SLUG = 'slug';
     public const RETURN_ARRAY = 'array';
     public const RETURN_NAME = 'name';
@@ -27,9 +26,6 @@ class ColorPaletteField extends \acf_field
     /**
      * Create a new field instance.
      *
-     * @param string $uri
-     * @param string $path
-     *
      * @return void
      */
     public function __construct(string $uri, string $path)
@@ -45,7 +41,7 @@ class ColorPaletteField extends \acf_field
         $this->label = \__('Color Palette');
         $this->category = 'jquery';
         $this->defaults = [
-            'palettes' => [],
+            'palettes'       => [],
             'exclude_colors' => [],
             'include_colors' => [],
             'return_format'  => self::RETURN_SLUG,
@@ -53,7 +49,7 @@ class ColorPaletteField extends \acf_field
             'default_value'  => null,
         ];
 
-        if(is_admin()) {
+        if (\is_admin()) {
             \add_filter('acf/get_field_label', [$this, 'add_label_indicator'], 10, 3);
         }
     }
@@ -99,7 +95,7 @@ class ColorPaletteField extends \acf_field
 
         // Include colors
         if (!empty($field['include_colors'])) {
-            $palettes = array_map(function($colors) use ($field) {
+            $palettes = \array_map(function ($colors) use ($field) {
                 return \array_values(\array_filter($colors, function ($color) use ($field) {
                     return \in_array($color['slug'], (array) $field['include_colors'], true);
                 }));
@@ -108,35 +104,34 @@ class ColorPaletteField extends \acf_field
 
         // Exclude colors
         if (!empty($field['exclude_colors'])) {
-            $palettes = array_map(function($colors) use ($field) {
+            $palettes = \array_map(function ($colors) use ($field) {
                 return \array_values(\array_filter($colors, function ($color) use ($field) {
                     return !\in_array($color['slug'], (array) $field['exclude_colors'], true);
                 }));
             }, $palettes);
         }
 
-        $palettes = array_filter($palettes);
+        $palettes = \array_filter($palettes);
 
         if (empty($palettes)) {
             return;
-        }
-        ?>
+        } ?>
 <div>
-    <?php foreach($palettes as $type => $colors): ?>
+    <?php foreach ($palettes as $type => $colors): ?>
     <div class="acf-color-palette-item">
-        <?php if(!is_numeric($type) && count($palettes) !== 1): ?>
+        <?php if (!\is_numeric($type) && 1 !== \count($palettes)): ?>
             <div class="components-truncate components-text components-heading">
-                <?php if($type === self::PALETTE_DEFAULT): ?>
-                    <?php echo _x('Default', 'admin color scheme'); ?>
-                <?php elseif($type === self::PALETTE_THEME): ?>
-                    <?php echo __('Theme'); ?>
+                <?php if (self::PALETTE_DEFAULT === $type): ?>
+                    <?php echo \_x('Default', 'admin color scheme'); ?>
+                <?php elseif (self::PALETTE_THEME === $type): ?>
+                    <?php echo \__('Theme'); ?>
                 <?php endif; ?>
             </div>
         <?php endif; ?>
         <div class="components-circular-option-picker">
             <div class="components-circular-option-picker__swatches">
                 <?php foreach ($colors as $color) :
-                    $id = $field['id'].'-'.\str_replace(' ', '-', $color['slug']) . '-' . $type; ?>
+                    $id = $field['id'].'-'.\str_replace(' ', '-', $color['slug']).'-'.$type; ?>
                     <div class="components-circular-option-picker__option-wrapper" data-color="<?php echo \esc_attr($color['color']); ?>">
                         <input
                             id="<?php echo \esc_attr($id); ?>"
@@ -201,17 +196,17 @@ class ColorPaletteField extends \acf_field
             );
         }
 
-        acf_render_field_setting($field, [
-            'label' => __('Color palettes', 'acf-color-palette'),
-            'name' => 'palettes',
-            'instructions' => __('Select color palettes.', 'acf-color-palette'),
-            'type' => 'checkbox',
-            'ui' => false,
+        \acf_render_field_setting($field, [
+            'label'         => \__('Color palettes', 'acf-color-palette'),
+            'name'          => 'palettes',
+            'instructions'  => \__('Select color palettes.', 'acf-color-palette'),
+            'type'          => 'checkbox',
+            'ui'            => false,
             'default_value' => 'theme',
-            'multiple' => true,
-            'choices' => [
-                self::PALETTE_THEME => __('Theme'),
-                self::PALETTE_DEFAULT => _x('Default', 'Default Preset'),
+            'multiple'      => true,
+            'choices'       => [
+                self::PALETTE_THEME   => \__('Theme'),
+                self::PALETTE_DEFAULT => \_x('Default', 'Default Preset'),
             ],
         ]);
 
@@ -249,10 +244,10 @@ class ColorPaletteField extends \acf_field
             'default_value' => $this->defaults['return_format'],
             'ui'            => false,
             'choices'       => [
-                self::RETURN_SLUG  => __('Slug'),
-                self::RETURN_ARRAY => __('Array'),
-                self::RETURN_COLOR => __('Color'),
-                self::RETURN_NAME => __('Name'),
+                self::RETURN_SLUG  => \__('Slug'),
+                self::RETURN_ARRAY => \__('Array'),
+                self::RETURN_COLOR => \__('Color'),
+                self::RETURN_NAME  => \__('Name'),
             ],
         ]);
 
@@ -288,7 +283,7 @@ class ColorPaletteField extends \acf_field
      */
     public function format_value($value, $post_id, $field)
     {
-        if(empty($value) || !is_string($value)) {
+        if (empty($value) || !\is_string($value)) {
             return null;
         }
 
@@ -427,12 +422,12 @@ class ColorPaletteField extends \acf_field
         $palette_types = $this->get_palette_types($palette_types);
 
         // Theme supports theme.json
-        if(class_exists('WP_Theme_JSON_Resolver') && WP_Theme_JSON_Resolver::theme_has_support()) {
+        if (\class_exists('WP_Theme_JSON_Resolver') && WP_Theme_JSON_Resolver::theme_has_support()) {
             // One palette, get the palette type
             // Needed to avoid merged data of WP_Theme_JSON_Resolver::get_merged_data()
             // e.g. color of theme placed into the default palette if is the same
-            if (count($palette_types) === 1) {
-                $type = reset($palette_types);
+            if (1 === \count($palette_types)) {
+                $type = \reset($palette_types);
 
                 // Get settings
                 $settings = [];
@@ -445,20 +440,22 @@ class ColorPaletteField extends \acf_field
                         break;
                 }
 
-                if(empty($settings)) {
+                if (empty($settings)) {
                     return $palettes;
                 }
 
                 $palettes[$type] = \_wp_array_get($settings, ['color', 'palette', $type], []);
+
                 return $palettes;
             } else {
                 $settings = WP_Theme_JSON_Resolver::get_merged_data()->get_settings();
                 $palettes = \_wp_array_get($settings, ['color', 'palette'], []);
                 // "core" became "default" in 5.9
-                if (array_key_exists('core', $palettes)) {
+                if (\array_key_exists('core', $palettes)) {
                     $palettes[self::PALETTE_DEFAULT] = $palettes['core'];
                     unset($palettes['core']);
                 }
+
                 return $palettes;
             }
         }
@@ -467,22 +464,17 @@ class ColorPaletteField extends \acf_field
     }
 
     /**
-     * Validate palette types
-     *
-     * @param array $types
-     * @return array
+     * Validate palette types.
      */
     public function get_palette_types(array $types): array
     {
-        return array_filter($types, function ($type) {
-            return in_array($type, [self::PALETTE_THEME, self::PALETTE_DEFAULT], true);
+        return \array_filter($types, function ($type) {
+            return \in_array($type, [self::PALETTE_THEME, self::PALETTE_DEFAULT], true);
         });
     }
 
     /**
      * Get color field.
-     *
-     * @param string|null $field
      *
      * @return mixed|null
      */
@@ -502,18 +494,18 @@ class ColorPaletteField extends \acf_field
     }
 
     /**
-     * Merge palette colors
-     *
-     * @return array
+     * Merge palette colors.
      */
-    protected function get_colors(): array {
+    protected function get_colors(): array
+    {
         $palettes = $this->get_palettes();
         $colors = [];
         foreach ($palettes as $palette) {
-            foreach($palette as $color) {
+            foreach ($palette as $color) {
                 $colors[$color['slug']] = $color;
             }
         }
+
         return $colors;
     }
 

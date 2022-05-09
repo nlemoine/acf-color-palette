@@ -27,7 +27,7 @@ add_filter('after_setup_theme', new class() {
             return;
         }
 
-        require_once __DIR__ . '/src/ColorPaletteField.php';
+        require_once __DIR__.'/src/ColorPaletteField.php';
 
         add_filter('acf/include_field_types', [$this, 'register_field']);
 
