@@ -16,7 +16,7 @@
     "advanced-custom-fields/advanced-custom-fields-pro": "^5.9",
     "squizlabs/php_codesniffer": "^3.5",
     "stoutlogic/acf-builder": "^1.12",
-    "symplify/easy-coding-standard": "^10.1",
+    "symplify/easy-coding-standard": "^11.0",
     "wpackagist-plugin/classic-editor": "^1.6"
   },
   "repositories": [

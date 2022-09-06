@@ -7,9 +7,13 @@ use WP_Theme_JSON_Resolver;
 class ColorPaletteField extends \acf_field
 {
     public const RETURN_SLUG = 'slug';
+
     public const RETURN_ARRAY = 'array';
+
     public const RETURN_NAME = 'name';
+
     public const RETURN_COLOR = 'color';
+
     public const RETURN_FORMATS = [
         self::RETURN_SLUG,
         self::RETURN_ARRAY,
@@ -18,9 +22,11 @@ class ColorPaletteField extends \acf_field
     ];
 
     public const PALETTE_DEFAULT = 'default';
+
     public const PALETTE_THEME = 'theme';
 
     protected string $path;
+
     protected string $uri;
 
     /**
@@ -75,7 +81,7 @@ class ColorPaletteField extends \acf_field
 
         $label .= '<span class="component-color-indicator"';
         if ($field['value']) {
-            $label .= ' style="background-color: '.\esc_attr($this->get_color($field['value'], 'color')).'"';
+            $label .= ' style="background-color: ' . \esc_attr($this->get_color($field['value'], 'color')) . '"';
         }
         $label .= '></span>';
 
@@ -119,6 +125,7 @@ class ColorPaletteField extends \acf_field
 <div>
     <?php foreach ($palettes as $type => $colors): ?>
     <div class="acf-color-palette-item">
+        <input type="hidden" name="<?php echo \esc_attr($field['name']); ?>">
         <?php if (!\is_numeric($type) && 1 !== \count($palettes)): ?>
             <div class="components-truncate components-text components-heading">
                 <?php if (self::PALETTE_DEFAULT === $type): ?>
@@ -131,7 +138,7 @@ class ColorPaletteField extends \acf_field
         <div class="components-circular-option-picker">
             <div class="components-circular-option-picker__swatches">
                 <?php foreach ($colors as $color) :
-                    $id = $field['id'].'-'.\str_replace(' ', '-', $color['slug']).'-'.$type; ?>
+                    $id = $field['id'] . '-' . \str_replace(' ', '-', $color['slug']) . '-' . $type; ?>
                     <div class="components-circular-option-picker__option-wrapper" data-color="<?php echo \esc_attr($color['color']); ?>">
                         <input
                             id="<?php echo \esc_attr($id); ?>"
@@ -305,6 +312,10 @@ class ColorPaletteField extends \acf_field
      */
     public function validate_value($valid, $value, $field, $input)
     {
+        if (empty($value) && $field['allow_null']) {
+            return $valid;
+        }
+
         $colors = $this->get_colors();
         if (!\in_array($value, \array_column($colors, 'slug'), true)) {
             return \sprintf(\__('The color %s is not a valid color', 'acf'), $value);
@@ -338,6 +349,14 @@ class ColorPaletteField extends \acf_field
      */
     public function update_value($value, $post_id, $field)
     {
+        // bail early if is empty
+        if (empty($value)) {
+            return $value;
+        }
+
+        // select -> update_value()
+        $value = \acf_get_field_type('select')->update_value($value, $post_id, $field);
+
         return $value;
     }
 
@@ -514,12 +533,12 @@ class ColorPaletteField extends \acf_field
      */
     protected function get_asset_url(string $asset): string
     {
-        $manifest_path = $this->path.'/assets/dist/manifest.json';
+        $manifest_path = $this->path . '/assets/dist/manifest.json';
         if (\is_file($manifest_path) && \is_readable($manifest_path)) {
             $manifest = \json_decode(\file_get_contents($manifest_path), true);
             $asset = $manifest[$asset] ?? $asset;
         }
 
-        return $this->uri.'/assets/dist/'.$asset;
+        return $this->uri . '/assets/dist/' . $asset;
     }
 }

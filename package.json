@@ -7,14 +7,14 @@
     "packages-update": "wp-scripts packages-update"
   },
   "devDependencies": {
-    "@wordpress/env": "^4.6.0",
-    "@wordpress/scripts": "^23.0.0",
+    "@wordpress/env": "^5.2.0",
+    "@wordpress/scripts": "^24.0.0",
     "assets-webpack-plugin": "^7.1.1",
-    "mini-css-extract-plugin": "^2.6.0",
+    "mini-css-extract-plugin": "^2.6.1",
     "webpack-manifest-plugin": "^5.0.0"
   },
   "dependencies": {
-    "@wordpress/base-styles": "^4.4.0",
-    "colord": "^2.9.2"
+    "@wordpress/base-styles": "^4.7.0",
+    "colord": "^2.9.3"
   }
 }

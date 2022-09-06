@@ -24,17 +24,17 @@ import a11yPlugin from 'colord/plugins/a11y';
 		onChange: function ( e, $input ) {
 			this.setColor( $input );
 		},
-		onDuplicate: function ( e, $el, $duplicate ) {
-			// Fix duplicate until issue is resolved: https://github.com/AdvancedCustomFields/acf/issues/616
-			$duplicate
-				.find( '.components-circular-option-picker__option-wrapper' )
-				.each( function ( i, $el ) {
-					const $this = $( this );
-					const $input = $this.find( 'input[type="radio"]' );
-					const $label = $this.find( 'label' );
-					$label.attr( 'for', $input.attr( 'id' ) );
-				} );
-		},
+		// onDuplicate: function ( e, $el, $duplicate ) {
+		// 	// Fix duplicate until issue is resolved: https://github.com/AdvancedCustomFields/acf/issues/616
+		// 	$duplicate
+		// 		.find( '.components-circular-option-picker__option-wrapper' )
+		// 		.each( function ( i, $el ) {
+		// 			const $this = $( this );
+		// 			const $input = $this.find( 'input[type="radio"]' );
+		// 			const $label = $this.find( 'label' );
+		// 			$label.attr( 'for', $input.attr( 'id' ) );
+		// 		} );
+		// },
 		onClear: function ( e, $button ) {
 			e.preventDefault();
 			// Clear checkboxes
