@@ -435,51 +435,20 @@ class ColorPaletteField extends \acf_field
      */
     protected function get_palettes(array $palette_types = []): array
     {
-        $palettes = [];
-
         // Validate palette types
         $palette_types = $this->get_palette_types($palette_types);
 
-        // Theme supports theme.json
-        if (\class_exists('WP_Theme_JSON_Resolver') && WP_Theme_JSON_Resolver::theme_has_support()) {
-            // One palette, get the palette type
-            // Needed to avoid merged data of WP_Theme_JSON_Resolver::get_merged_data()
-            // e.g. color of theme placed into the default palette if is the same
-            if (1 === \count($palette_types)) {
-                $type = \reset($palette_types);
-
-                // Get settings
-                $settings = [];
-                switch ($type) {
-                    case self::PALETTE_THEME:
-                        $settings = WP_Theme_JSON_Resolver::get_theme_data()->get_settings();
-                        break;
-                    case self::PALETTE_DEFAULT:
-                        $settings = WP_Theme_JSON_Resolver::get_core_data()->get_settings();
-                        break;
-                }
-
-                if (empty($settings)) {
-                    return $palettes;
-                }
-
-                $palettes[$type] = \_wp_array_get($settings, ['color', 'palette', $type], []);
-
-                return $palettes;
-            } else {
-                $settings = WP_Theme_JSON_Resolver::get_merged_data()->get_settings();
-                $palettes = \_wp_array_get($settings, ['color', 'palette'], []);
-                // "core" became "default" in 5.9
-                if (\array_key_exists('core', $palettes)) {
-                    $palettes[self::PALETTE_DEFAULT] = $palettes['core'];
-                    unset($palettes['core']);
-                }
-
-                return $palettes;
-            }
+        $palettes = _wp_array_get(wp_get_global_settings(), ['color', 'palette'], []);
+        if (empty($palettes)) {
+            return $palettes;
         }
 
-        return \get_theme_support('editor-color-palette') ?? [];
+        return array_filter($palettes, function ($palette, $palette_slug) use($palette_types) {
+            if(empty($palette_types)) {
+                return true;
+            }
+            return in_array($palette_slug, $palette_types, true);
+        }, ARRAY_FILTER_USE_BOTH);
     }
 
     /**
@@ -487,7 +456,7 @@ class ColorPaletteField extends \acf_field
      */
     public function get_palette_types(array $types): array
     {
-        return \array_filter($types, function ($type) {
+        return \array_filter($types, static function ($type): bool {
             return \in_array($type, [self::PALETTE_THEME, self::PALETTE_DEFAULT], true);
         });
     }
