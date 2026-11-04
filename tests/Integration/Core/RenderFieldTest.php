@@ -73,19 +73,77 @@ final class RenderFieldTest extends TestCase
         $html->assertQuerySelectorMissing('.components-heading');
     }
 
-    public function testUsesUniqueIdsForASlugInSeveralPalettes(): void
+    public function testChecksASingleRadioForASlugInSeveralPalettes(): void
     {
         // WordPress drops theme colors reusing a default slug, unless the theme hides the default palette.
-        $this->useThemePalette([['slug' => 'black', 'name' => 'Black', 'color' => '#000']], defaultPalette: false);
+        $this->useThemePalette([['slug' => 'black', 'name' => 'Black', 'color' => '#111111']], defaultPalette: false);
+        $field = $this->registerField(['palettes' => ['theme', 'default']]);
+        $field['value'] = 'black';
 
-        $html = html_string($this->renderField($this->registerField(['palettes' => ['theme', 'default']])));
+        $html = html_string($this->renderField($field));
 
         $ids = [];
         foreach ($html->get_by_selector('input[type="radio"][value="black"]') as $input) {
             $ids[] = $input->getAttribute('id');
         }
-        $this->assertCount(2, $ids);
         $this->assertCount(2, \array_unique($ids));
+        // The theme one, like get_field() and the CSS variable.
+        $html->assertQuerySelectorCount('input[type="radio"][checked]', 1);
+        $this->assertStringContainsString('-theme-', (string) $html->first_by_selector('input[type="radio"][checked]')->get_attribute('id'));
+    }
+
+    public function testUsesValidIdsWhateverTheSlugs(): void
+    {
+        $this->useThemePalette([
+            ['slug' => 'синий', 'name' => 'Blue', 'color' => '#00f'],
+            ['slug' => 'красный', 'name' => 'Red', 'color' => '#f00'],
+            ['slug' => 'brand.primary', 'name' => 'Brand', 'color' => '#123'],
+            ['slug' => 'brandprimary', 'name' => 'Other brand', 'color' => '#456'],
+        ]);
+
+        $html = html_string($this->renderField($this->registerField(['palettes' => ['theme']])));
+
+        $ids = [];
+        foreach ($html->get_by_selector('input[type="radio"]') as $input) {
+            $ids[] = $input->getAttribute('id');
+            $this->assertMatchesRegularExpression('/\A[A-Za-z0-9_-]+\z/', $input->getAttribute('id'));
+        }
+        $this->assertCount(4, \array_unique($ids));
+    }
+
+    public function testKeepsAStoredColorTheFieldNoLongerShows(): void
+    {
+        $field = $this->registerField(['palettes' => ['theme']]);
+        $field['value'] = 'vivid-red';
+
+        $html = html_string($this->renderField($field));
+
+        // Checked in its own group, so that saving the post keeps it.
+        $this->assertSame('checked', $html->first_by_selector('input[value="vivid-red"]')->get_attribute('checked'));
+        $html->assertQuerySelectorCount('.acf-color-palette-item', 2);
+        $headings = [];
+        foreach ($html->get_by_selector('.components-heading') as $heading) {
+            $headings[] = \trim($heading->textContent);
+        }
+        $this->assertSame(['Theme', 'Current color'], $headings);
+    }
+
+    public function testDropsAStoredColorRemovedFromThePalettes(): void
+    {
+        $field = $this->registerField(['palettes' => ['theme']]);
+        $field['value'] = 'removed';
+
+        $html = html_string($this->renderField($field));
+
+        $html->assertQuerySelectorCount('.acf-color-palette-item', 1);
+        $html->assertQuerySelectorMissing('input[type="radio"][checked]');
+    }
+
+    public function testNamesTheGroupsAfterTheField(): void
+    {
+        $html = html_string($this->renderField($this->registerField(['label' => 'Accent <em>color</em>'])));
+
+        $this->assertSame('Accent color', $html->first_by_selector('[role="group"]')->get_attribute('aria-label'));
     }
 
     public function testShowsTheClearButtonWhenNullIsAllowed(): void
@@ -109,24 +167,15 @@ final class RenderFieldTest extends TestCase
         $this->assertSame('', $this->renderField($field));
     }
 
-    public function testAddsTheSelectedColorToTheLabel(): void
+    public function testAddsTheColorIndicatorToTheLabel(): void
     {
-        $field = $this->registerField();
+        $field = $this->registerField(['palettes' => ['theme']]);
         $field['value'] = 'primary';
 
+        // Through acf_esc_html(), like ACF renders labels: the script paints the indicator.
         $html = html_string(capture(static fn () => \acf_render_field_label($field)));
 
-        $indicator = $html->first_by_selector('.component-color-indicator');
-        $this->assertSame('background-color: #0d6efd', $indicator->get_attribute('style'));
-    }
-
-    public function testAddsAnEmptyIndicatorWithoutValue(): void
-    {
-        $field = $this->registerField();
-        $field['value'] = null;
-
-        $html = html_string(capture(static fn () => \acf_render_field_label($field)));
-
+        $html->assertQuerySelectorCount('.component-color-indicator', 1);
         $this->assertNull($html->first_by_selector('.component-color-indicator')->get_attribute('style'));
     }
 

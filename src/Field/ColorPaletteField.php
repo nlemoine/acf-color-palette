@@ -10,7 +10,6 @@ namespace n5s\AcfColorPalette\Field;
 use acf_field;
 use n5s\AcfColorPalette\Palette;
 use n5s\AcfColorPalette\Palettes;
-use n5s\AcfColorPalette\Plugin;
 use n5s\AcfColorPalette\ReturnFormat;
 
 /**
@@ -19,6 +18,7 @@ use n5s\AcfColorPalette\ReturnFormat;
  * ACF method parameters stay untyped: a future ACF version could declare them untyped in acf_field.
  *
  * @phpstan-type Field array<string, mixed>
+ * @phpstan-import-type Color from Palettes
  */
 class ColorPaletteField extends acf_field
 {
@@ -30,7 +30,7 @@ class ColorPaletteField extends acf_field
 
     private const string ASSET_HANDLE = 'acf-color-palette-field';
 
-    private readonly Palettes $palettes;
+    private const string CURRENT_GROUP = 'current';
 
     /**
      * @var array<mixed>|null
@@ -40,10 +40,9 @@ class ColorPaletteField extends acf_field
     public function __construct(
         private readonly string $uri,
         private readonly string $path,
-        ?Palettes $palettes = null,
+        private readonly Palettes $palettes,
     ) {
 
-        $this->palettes = $palettes ?? Plugin::getInstance()->palettes();
         parent::__construct();
     }
 
@@ -67,7 +66,9 @@ class ColorPaletteField extends acf_field
     }
 
     /**
-     * Show the selected color next to the field label.
+     * Add the selected color indicator next to the field label.
+     *
+     * The script paints it: ACF passes labels through wp_kses(), which drops rgb(), hsl() and other color functions from style attributes.
      *
      * @param mixed $label
      * @param mixed $field
@@ -84,12 +85,7 @@ class ColorPaletteField extends acf_field
             return $label;
         }
 
-        $value = $field['value'] ?? null;
-        $color = \is_string($value) && $value !== '' ? $this->palettes->find($value) : null;
-
-        return $label . ($color === null
-            ? '<span class="component-color-indicator"></span>'
-            : \sprintf('<span class="component-color-indicator" style="background-color: %s"></span>', \esc_attr($color['color'])));
+        return $label . '<span class="component-color-indicator"></span>';
     }
 
     /**
@@ -97,29 +93,32 @@ class ColorPaletteField extends acf_field
      */
     public function render_field($field): void
     {
-        $palettes = $this->palettes->forField($field);
-        if ($palettes === []) {
+        $value = \is_string($field['value'] ?? null) ? $field['value'] : '';
+        $groups = $this->swatchGroups($field, $value);
+        if ($groups === []) {
             return;
         }
 
-        $value = \is_string($field['value'] ?? null) ? $field['value'] : '';
+        $checked = $this->checkedGroup($groups, $value);
         $fieldId = \is_string($field['id'] ?? null) ? $field['id'] : '';
         $name = \is_string($field['name'] ?? null) ? $field['name'] : '';
+        $label = \is_string($field['label'] ?? null) ? \wp_strip_all_tags($field['label']) : '';
         ?>
-        <div>
+        <div role="group" aria-label="<?= \esc_attr($label) ?>">
             <?php // Submitted when no color is checked, so that clearing the field saves an empty value. ?>
             <input type="hidden" name="<?= \esc_attr($name) ?>" value="">
-            <?php foreach ($palettes as $origin => $colors) : ?>
+            <?php foreach ($groups as $key => $group) : ?>
                 <div class="acf-color-palette-item">
-                    <?php if (\count($palettes) > 1) : ?>
+                    <?php if (\count($groups) > 1) : ?>
                         <div class="components-truncate components-text components-heading">
-                            <?= \esc_html(Palette::from($origin)->label()) ?>
+                            <?= \esc_html($group['label']) ?>
                         </div>
                     <?php endif ?>
                     <div class="components-circular-option-picker">
-                        <div class="components-circular-option-picker__swatches" role="radiogroup" aria-label="<?= \esc_attr(Palette::from($origin)->label()) ?>">
-                            <?php foreach ($colors as $color) :
-                                $id = $fieldId . '-' . $origin . '-' . \sanitize_html_class($color['slug']);
+                        <div class="components-circular-option-picker__swatches" role="radiogroup" aria-label="<?= \esc_attr($group['label']) ?>">
+                            <?php foreach ($group['colors'] as $index => $color) :
+                                // Slugs can hold any character: the position makes a valid, unique id.
+                                $id = "{$fieldId}-{$key}-{$index}";
                                 /* translators: %s: color name */
                                 $ariaLabel = \sprintf(\__('Color: %s', 'acf-color-palette'), $color['name']);
                                 ?>
@@ -130,7 +129,7 @@ class ColorPaletteField extends acf_field
                                         name="<?= \esc_attr($name) ?>"
                                         value="<?= \esc_attr($color['slug']) ?>"
                                         aria-label="<?= \esc_attr($ariaLabel) ?>"
-                                        <?php \checked($color['slug'], $value) ?>
+                                        <?php \checked($key === $checked && $color['slug'] === $value) ?>
                                     />
                                     <?php // The radio, visually hidden, takes the focus: the label is the swatch. ?>
                                     <label
@@ -259,6 +258,8 @@ class ColorPaletteField extends acf_field
     }
 
     /**
+     * Any color of the palettes is valid: the field shows the stored color even when its settings no longer include it.
+     *
      * @param bool|string $valid
      * @param mixed       $value
      * @param Field       $field
@@ -271,7 +272,7 @@ class ColorPaletteField extends acf_field
             return $valid;
         }
 
-        if (\is_string($value) && \in_array($value, $this->fieldSlugs($field), true)) {
+        if (\is_string($value) && $this->palettes->find($value) !== null) {
             return $valid;
         }
 
@@ -283,6 +284,8 @@ class ColorPaletteField extends acf_field
     }
 
     /**
+     * REST clients pick among the colors the field shows, or null to empty a field that is not required.
+     *
      * @param Field $field
      *
      * @return array<string, mixed>
@@ -292,8 +295,12 @@ class ColorPaletteField extends acf_field
         $schema = parent::get_rest_schema($field);
         $schema['enum'] = $this->fieldSlugs($field);
 
-        if (!empty($field['allow_null'])) {
+        if (empty($field['required'])) {
             $schema['enum'][] = null;
+        }
+
+        if (isset($schema['default']) && !\in_array($schema['default'], $schema['enum'], true)) {
+            unset($schema['default']);
         }
 
         return $schema;
@@ -312,9 +319,20 @@ class ColorPaletteField extends acf_field
             return $valid;
         }
 
+        $schema = $this->get_rest_schema($field);
         $name = \is_string($field['name'] ?? null) ? $field['name'] : 'acf';
 
-        return \rest_validate_value_from_schema($value, $this->get_rest_schema($field), $name);
+        // rest_validate_value_from_schema() skips an empty enum: a field without colors accepts no color.
+        if (!\in_array($value, $schema['enum'], true)) {
+            return new \WP_Error(
+                'rest_not_in_enum',
+                /* translators: %s: the field name */
+                \sprintf(\__('%s is not one of the colors of the field.', 'acf-color-palette'), $name),
+                ['param' => $name]
+            );
+        }
+
+        return \rest_validate_value_from_schema($value, $schema, $name);
     }
 
     public function input_admin_enqueue_scripts(): void
@@ -342,6 +360,45 @@ class ColorPaletteField extends acf_field
     private function colorChoices(): array
     {
         return \array_map(static fn (array $color): string => $color['name'], $this->palettes->colors());
+    }
+
+    /**
+     * The swatches a field shows, by group: its palettes, and the stored color when the field settings no longer include it.
+     *
+     * @param Field $field
+     *
+     * @return array<string, array{label: string, colors: non-empty-list<Color>}>
+     */
+    private function swatchGroups(array $field, string $value): array
+    {
+        $groups = [];
+        foreach ($this->palettes->forField($field) as $origin => $colors) {
+            $groups[$origin] = ['label' => Palette::from($origin)->label(), 'colors' => $colors];
+        }
+
+        // Shown on its own, so that saving the post keeps it.
+        $stored = $value === '' || \in_array($value, $this->fieldSlugs($field), true) ? null : $this->palettes->find($value);
+        if ($stored !== null) {
+            $groups[self::CURRENT_GROUP] = ['label' => \__('Current color', 'acf-color-palette'), 'colors' => [$stored]];
+        }
+
+        return $groups;
+    }
+
+    /**
+     * The group of the checked swatch: a slug in several palettes resolves like Palettes::colors().
+     *
+     * @param array<string, array{label: string, colors: non-empty-list<Color>}> $groups
+     */
+    private function checkedGroup(array $groups, string $value): ?string
+    {
+        foreach ([self::CURRENT_GROUP, Palette::Custom->value, Palette::Theme->value, Palette::Default->value] as $key) {
+            if (\in_array($value, \array_column($groups[$key]['colors'] ?? [], 'slug'), true)) {
+                return $key;
+            }
+        }
+
+        return null;
     }
 
     /**

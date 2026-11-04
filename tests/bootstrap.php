@@ -22,7 +22,10 @@ manager()
     ->with_sqlite()
     ->loaded(static function () use ($integration): void {
         $plugins = __DIR__ . '/../wp-content/plugins';
-        require "{$plugins}/advanced-custom-fields/acf.php";
+
+        // ACF PRO is not on a public repository: point ACF_COLOR_PALETTE_ACF_PRO to a local copy to run the PRO field tests.
+        $acfPro = (string) getenv('ACF_COLOR_PALETTE_ACF_PRO');
+        require $acfPro !== '' ? rtrim($acfPro, '/') . '/acf.php' : "{$plugins}/advanced-custom-fields/acf.php";
 
         if ($integration === 'wpgraphql') {
             require "{$plugins}/wp-graphql/wp-graphql.php";

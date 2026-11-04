@@ -35,17 +35,18 @@ Classes moved from `HelloNico\AcfColorPalette` to `n5s\AcfColorPalette`, and the
 
 ## Validation
 
-- A submitted color must be one the field shows, given its palettes and included and excluded colors. 0.x accepted any color of any palette.
 - An empty value is valid unless the field is required. 0.x rejected it when "Allow null" was off.
+- A stored color the field no longer shows (after changing its palettes, or its included or excluded colors) is shown in a "Current color" group, checked, so saving the post keeps it. A color removed from every palette can no longer be shown: saving the post empties the field.
+- REST requests can only set the colors the field shows, or `null` when the field is not required.
 
 ## Palettes
 
 - The "Custom" palette (colors created in the Site Editor global styles) can now be selected in the field settings, and has its own heading. 0.x showed these colors without heading when no palette was selected.
-- When no palette is selected, the field now shows the palettes of the block editor color picker: themes setting `settings.color.defaultPalette` to `false`, such as Twenty Twenty-Five, no longer get the WordPress default colors. Select the "Default" palette in the field settings to keep them.
+- When no palette is selected, the field now shows the palettes of the block editor color picker: themes setting `settings.color.defaultPalette` to `false`, such as Twenty Twenty-Five, no longer get the WordPress default colors. Select the "Default" palette in the field settings to keep them. Stored default colors stay selected, in the "Current color" group.
 
 ## Keyboard
 
-The swatch labels are no longer focusable (`tabindex="0"`): the radio buttons are, and arrow keys move between colors. The accessible name ("Color: …") moved from the label to the radio button.
+The swatch labels are no longer focusable (`tabindex="0"`): the radio buttons are, and arrow keys move between colors. The accessible name ("Color: …") moved from the label to the radio button. Radio ids now use the position of the color instead of its slug.
 
 ## Admin Columns
 
