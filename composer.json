@@ -1,69 +1,113 @@
 {
-  "name": "hellonico/acf-color-palette",
-  "description": "A Gutenberg like color palette field for ACF.",
-  "type": "wordpress-plugin",
-  "keywords": [
-    "acf",
-    "acf-field",
-    "color-palette",
-    "wordpress",
-    "wordpress-plugin"
-  ],
-  "require": {
-    "php": "^7.4 || ^8.0"
-  },
-  "require-dev": {
-    "advanced-custom-fields/advanced-custom-fields-pro": "^5.9",
-    "squizlabs/php_codesniffer": "^3.5",
-    "stoutlogic/acf-builder": "^1.12",
-    "symplify/easy-coding-standard": "^11.0",
-    "wpackagist-plugin/classic-editor": "^1.6"
-  },
-  "repositories": [
-    {
-      "type": "composer",
-      "url": "https://wpackagist.org",
-      "only": [
-        "wpackagist-plugin/*",
-        "wpackagist-theme/*"
-      ]
-    },
-    {
-      "type": "composer",
-      "url": "https://pivvenit.github.io/acf-composer-bridge/composer/v3/wordpress-plugin/"
-    }
-  ],
-  "minimum-stability": "dev",
-  "prefer-stable": true,
-  "config": {
-    "allow-plugins": {
-      "composer/installers": true,
-      "pivvenit/acf-pro-installer": true
-    },
-    "optimize-autoloader": true,
-    "preferred-install": "dist",
-    "sort-packages": true
-  },
-  "extra": {
-    "installer-paths": {
-      "tests/mu-plugins/{$name}/": [
-        "type:wordpress-muplugin"
-      ],
-      "tests/plugins/{$name}/": [
-        "type:wordpress-plugin"
-      ],
-      "tests/themes/{$name}/": [
-        "type:wordpress-theme"
-      ]
-    },
-    "wordpress-install-dir": "tests/wp"
-  },
-  "scripts": {
-    "lint": [
-      "ecs check"
+    "name": "hellonico/acf-color-palette",
+    "description": "A Gutenberg-like color palette field for ACF.",
+    "license": "MIT",
+    "type": "wordpress-plugin",
+    "keywords": [
+        "advanced custom fields",
+        "acf",
+        "acf-field",
+        "color-palette",
+        "wordpress",
+        "wordpress-plugin"
     ],
-    "lint:fix": [
-      "ecs check --fix"
-    ]
-  }
+    "authors": [
+        {
+            "name": "Nicolas Lemoine",
+            "email": "nico@n5s.dev",
+            "homepage": "https://n5s.dev/"
+        }
+    ],
+    "homepage": "https://github.com/nlemoine/acf-color-palette",
+    "support": {
+        "issues": "https://github.com/nlemoine/acf-color-palette/issues",
+        "source": "https://github.com/nlemoine/acf-color-palette.git",
+        "security": "https://github.com/nlemoine/acf-color-palette/security/policy",
+        "changelog": "https://github.com/nlemoine/acf-color-palette/releases"
+    },
+    "require": {
+        "php": "^8.3"
+    },
+    "require-dev": {
+        "composer/installers": "^2.0",
+        "ergebnis/composer-normalize": "^2.54",
+        "mantle-framework/testkit": "^1.18",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.1",
+        "rector/rector": "^2.6",
+        "slevomat/coding-standard": "^8.22",
+        "syde/phpcs": "^1.0",
+        "szepeviktor/phpstan-wordpress": "^2.0",
+        "wp-cli/i18n-command": "^2.7",
+        "wp-cli/wp-cli": "^2.12",
+        "wp-plugin/advanced-custom-fields": "^6",
+        "wp-plugin/codepress-admin-columns": "^7.1",
+        "wp-plugin/wp-graphql": "^2",
+        "wp-plugin/wpgraphql-acf": "^3"
+    },
+    "repositories": [
+        {
+            "name": "wp-packages",
+            "type": "composer",
+            "url": "https://repo.wp-packages.org",
+            "only": [
+                "wp-plugin/*",
+                "wp-theme/*"
+            ]
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "n5s\\AcfColorPalette\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "n5s\\AcfColorPalette\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "alleyinteractive/composer-wordpress-autoloader": true,
+            "composer/installers": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "ergebnis/composer-normalize": true,
+            "phpstan/extension-installer": true,
+            "roots/wordpress-core-installer": true
+        },
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "scripts": {
+        "cs": "phpcs",
+        "cs:fix": "phpcbf",
+        "i18n:pot": "wp i18n make-pot . languages/acf-color-palette.pot --domain=acf-color-palette --slug=acf-color-palette --exclude=vendor,node_modules,wp-content,assets,tmp",
+        "phpstan": "@php -d memory_limit=-1 vendor/bin/phpstan analyse",
+        "rector": "rector process --dry-run",
+        "rector:fix": "rector process",
+        "test": [
+            "@test:core",
+            "@test:wpgraphql",
+            "@test:admin-columns"
+        ],
+        "test:admin-columns": [
+            "@putenv ACF_COLOR_PALETTE_TEST_INTEGRATION=admin-columns",
+            "phpunit --testsuite admin-columns"
+        ],
+        "test:core": [
+            "@putenv ACF_COLOR_PALETTE_TEST_INTEGRATION=",
+            "phpunit --testsuite unit,core"
+        ],
+        "test:coverage": [
+            "@putenv ACF_COLOR_PALETTE_TEST_INTEGRATION=",
+            "php -d pcov.enabled=1 vendor/bin/phpunit --testsuite unit,core --coverage-text"
+        ],
+        "test:wpgraphql": [
+            "@putenv ACF_COLOR_PALETTE_TEST_INTEGRATION=wpgraphql",
+            "phpunit --testsuite wpgraphql"
+        ]
+    }
 }

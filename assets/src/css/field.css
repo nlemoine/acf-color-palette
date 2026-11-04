@@ -1,0 +1,79 @@
+.field-type-icon.field-type-icon-color-palette::before {
+  mask-image: url('../images/icon-field-color-palette.svg');
+}
+
+.acf-field-color-palette .acf-color-palette-item:not(:first-of-type) {
+  margin-top: 12px;
+}
+
+.acf-field-color-palette .components-heading {
+  display: block;
+  margin: 0;
+  color: rgb(5, 5, 5);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 24px;
+  text-transform: uppercase;
+}
+
+.acf-field-color-palette label {
+  display: flex !important;
+  align-items: center;
+}
+
+.acf-field-color-palette .component-color-indicator {
+  display: none;
+}
+
+.acf-field-color-palette .component-color-indicator[style] {
+  display: block;
+}
+
+/* Visually hidden, but focusable: arrow keys move between colors. */
+.acf-field-color-palette .components-circular-option-picker__option-wrapper input[type='radio'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+  opacity: 0;
+}
+
+.acf-field-color-palette .components-circular-option-picker__option-wrapper svg {
+  display: none;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  z-index: 2;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.acf-field-color-palette input[type='radio']:checked + .components-circular-option-picker__option + svg {
+  display: block;
+}
+
+/* The focus ring of the block editor swatches, on the swatch of the focused radio. */
+.acf-field-color-palette input[type='radio']:focus-visible + .components-circular-option-picker__option::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--wp-admin-theme-color, #3858e9);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+.acf-field-color-palette .components-circular-option-picker__custom-clear-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}

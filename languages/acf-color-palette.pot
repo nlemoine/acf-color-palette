@@ -1,0 +1,137 @@
+# Copyright (C) 2026 Nicolas Lemoine
+# This file is distributed under the MIT.
+msgid ""
+msgstr ""
+"Project-Id-Version: Advanced Custom Fields: ACF Color Palette 0.2.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/acf-color-palette\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-11-04T12:29:22+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: acf-color-palette\n"
+
+#. Plugin Name of the plugin
+#: acf-color-palette.php:4
+msgid "Advanced Custom Fields: ACF Color Palette"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: acf-color-palette.php:5
+msgid "https://github.com/nlemoine/acf-color-palette"
+msgstr ""
+
+#. Description of the plugin
+#: acf-color-palette.php:6
+msgid "A Gutenberg-like color palette field for ACF, using the colors of the theme.json palettes."
+msgstr ""
+
+#. Author of the plugin
+#: acf-color-palette.php:12
+msgid "Nicolas Lemoine"
+msgstr ""
+
+#. Author URI of the plugin
+#: acf-color-palette.php:13
+msgid "https://github.com/nlemoine"
+msgstr ""
+
+#: acf-color-palette.php:67
+msgid "ACF Color Palette could not load its classes. Install the plugin from the acf-color-palette.zip release asset, or load Composer's vendor/autoload.php."
+msgstr ""
+
+#: src/Field/ColorPaletteField.php:53
+msgid "Color Palette"
+msgstr ""
+
+#: src/Field/ColorPaletteField.php:55
+msgid "Pick a color from the theme.json color palettes, like the block editor color picker."
+msgstr ""
+
+#. translators: %s: color name
+#: src/Field/ColorPaletteField.php:124
+#, php-format
+msgid "Color: %s"
+msgstr ""
+
+#: src/Field/ColorPaletteField.php:172
+msgid "Color palettes"
+msgstr ""
+
+#: src/Field/ColorPaletteField.php:173
+msgid "The palettes to show. Leave empty to show the palettes of the block editor color picker."
+msgstr ""
+
+#: src/Field/ColorPaletteField.php:183
+msgid "Include colors"
+msgstr ""
+
+#: src/Field/ColorPaletteField.php:184
+msgid "Only show these colors. Leave empty to show all of them."
+msgstr ""
+
+#: src/Field/ColorPaletteField.php:190
+#: src/Field/ColorPaletteField.php:202
+msgid "Select colors (optional)"
+msgstr ""
+
+#: src/Field/ColorPaletteField.php:195
+msgid "Exclude colors"
+msgstr ""
+
+#: src/Field/ColorPaletteField.php:196
+msgid "Hide these colors."
+msgstr ""
+
+#. translators: %s: the submitted color slug
+#: src/Field/ColorPaletteField.php:280
+#, php-format
+msgid "%s is not a valid color"
+msgstr ""
+
+#: src/Integration/WpGraphQl.php:39
+msgid "A color selected in an ACF Color Palette field."
+msgstr ""
+
+#: src/Integration/WpGraphQl.php:43
+msgid "Color slug, as in the --wp--preset--color--<slug> CSS variable."
+msgstr ""
+
+#: src/Integration/WpGraphQl.php:47
+msgid "Color name, null for a color no longer in the palettes."
+msgstr ""
+
+#: src/Integration/WpGraphQl.php:51
+msgid "Color value, null for a color no longer in the palettes."
+msgstr ""
+
+#: src/Palette.php:43
+msgid "Theme"
+msgstr ""
+
+#: src/Palette.php:44
+msgid "Default"
+msgstr ""
+
+#: src/Palette.php:45
+msgid "Custom"
+msgstr ""
+
+#: src/ReturnFormat.php:47
+msgid "Slug"
+msgstr ""
+
+#: src/ReturnFormat.php:48
+msgid "Slug, name and color"
+msgstr ""
+
+#: src/ReturnFormat.php:49
+msgid "Name"
+msgstr ""
+
+#: src/ReturnFormat.php:50
+msgid "Color value"
+msgstr ""

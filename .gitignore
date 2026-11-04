@@ -1,5 +1,10 @@
 /node_modules
 /vendor
+/package-lock.json
 composer.lock
-/tests/*
-!/tests/mu.php
+/wp-content
+
+/tmp
+.phpunit.result.cache
+.phpunit.cache
+/build

@@ -1,0 +1,72 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release Please
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # create tags and GitHub releases, push the release branch
+      pull-requests: write # open and label the release PR
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          target-branch: ${{ github.ref_name }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  build:
+    name: Bundled ZIP
+    needs: release
+    if: needs.release.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write # upload the release asset
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.release.outputs.tag_name }} # the released commit, not a later push to the branch
+          persist-credentials: false
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.3' # lowest supported version: runtime dependencies, if any, resolve to versions that run on it
+          coverage: none
+      # Install without an autoloader, then dump it once with the strict checks (as recommended in composer/composer#12294).
+      - uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+        with:
+          composer-options: --no-dev --prefer-dist --no-autoloader
+      - run: composer dump-autoload --no-dev --classmap-authoritative --strict-psr --strict-ambiguous
+      - name: Build the ZIP
+        run: |
+          mkdir -p dist
+          # Tracked files only, without export-ignore'd files.
+          git archive --prefix=acf-color-palette/ HEAD | tar -x -C dist
+          # vendor/ is not tracked: add the production autoloader.
+          cp -r vendor dist/acf-color-palette/vendor
+          sed -i "s|// @bundle-autoload|require_once __DIR__ . '/vendor/autoload.php';|" dist/acf-color-palette/acf-color-palette.php
+          grep -q "require_once __DIR__ . '/vendor/autoload.php';" dist/acf-color-palette/acf-color-palette.php \
+            || { echo "::error::bundle autoload marker replacement failed"; exit 1; }
+          php -l dist/acf-color-palette/acf-color-palette.php
+          (cd dist && zip -rq ../acf-color-palette.zip acf-color-palette)
+      - name: Upload the ZIP to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release.outputs.tag_name }}
+        run: gh release upload "$TAG" acf-color-palette.zip --clobber

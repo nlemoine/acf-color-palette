@@ -1,20 +1,30 @@
 {
   "private": true,
-  "scripts": {
-    "start": "wp-scripts start",
-    "build": "wp-scripts build",
-    "format": "wp-scripts format ./assets/src/js",
-    "packages-update": "wp-scripts packages-update"
+  "name": "acf-color-palette",
+  "description": "A Gutenberg-like color palette field for ACF.",
+  "license": "MIT",
+  "author": "Nicolas Lemoine <nico@n5s.dev>",
+  "homepage": "https://github.com/nlemoine/acf-color-palette",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nlemoine/acf-color-palette.git"
   },
-  "devDependencies": {
-    "@wordpress/env": "^5.2.0",
-    "@wordpress/scripts": "^24.0.0",
-    "assets-webpack-plugin": "^7.1.1",
-    "mini-css-extract-plugin": "^2.6.1",
-    "webpack-manifest-plugin": "^5.0.0"
+  "bugs": {
+    "url": "https://github.com/nlemoine/acf-color-palette/issues"
+  },
+  "scripts": {
+    "start": "wp-scripts start --config webpack.config.mjs",
+    "build": "wp-scripts build --config webpack.config.mjs",
+    "format": "wp-scripts format ./assets/src/js"
   },
   "dependencies": {
-    "@wordpress/base-styles": "^4.7.0",
     "colord": "^2.9.3"
-  }
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^36.0.0",
+    "mini-css-extract-plugin": "^2.10.2",
+    "rtlcss": "^4.3.0",
+    "webpack-manifest-plugin": "^6.0.1"
+  },
+  "packageManager": "pnpm@12.6.0+sha512.3ef68f951cb111ac204b4a5a16f0b2ddf0da56a96e0413e81d855d9f0b55ef926714709028e1cd00c405c2c5fb7b9e8ec4dc46777c805d0373c2f2ff00fd20ec"
 }
