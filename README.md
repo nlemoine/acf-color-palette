@@ -7,6 +7,8 @@
 
 Adds a 'Color Palette' field type for the [Advanced Custom Fields](https://wordpress.org/plugins/advanced-custom-fields/) WordPress plugin (free or PRO).
 
+<img src=".github/screenshot.png" width="630" alt="A color palette field with the theme, default and custom palettes, and a selected color">
+
 ### Overview
 
 Pick a color among the colors of your theme, the way the block editor color picker does. Colors come from the global settings: the `theme.json` palettes on block themes, or `add_theme_support('editor-color-palette')` on classic themes.
