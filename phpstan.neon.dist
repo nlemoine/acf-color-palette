@@ -1,0 +1,9 @@
+parameters:
+    level: 8
+    treatPhpDocTypesAsCertain: false
+    tmpDir: tmp/phpstan
+    paths:
+        - acf-color-palette.php
+        - src
+    scanDirectories:
+        - wp-content/plugins

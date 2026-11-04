@@ -1,0 +1,78 @@
+{
+    "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+    "meta": {
+        "title": "ACF Color Palette",
+        "description": "ACF Color Palette (latest release), with posts colored by their color palette fields, on Twenty Twenty-Five.",
+        "author": "nlemoine",
+        "categories": [
+            "Content"
+        ]
+    },
+    "landingPage": "/wp-admin/post.php?post=1000&action=edit",
+    "preferredVersions": {
+        "php": "8.3",
+        "wp": "latest"
+    },
+    "login": true,
+    "steps": [
+        {
+            "step": "installPlugin",
+            "pluginData": {
+                "resource": "wordpress.org/plugins",
+                "slug": "advanced-custom-fields"
+            },
+            "options": {
+                "activate": true
+            }
+        },
+        {
+            "step": "installPlugin",
+            "pluginData": {
+                "resource": "wordpress.org/plugins",
+                "slug": "codepress-admin-columns"
+            },
+            "options": {
+                "activate": true
+            }
+        },
+        {
+            "step": "installPlugin",
+            "pluginData": {
+                "resource": "url",
+                "url": "https://github.com/nlemoine/acf-color-palette/releases/latest/download/acf-color-palette.zip"
+            },
+            "options": {
+                "activate": true,
+                "targetFolderName": "acf-color-palette"
+            }
+        },
+        {
+            "step": "writeFile",
+            "path": "/wordpress/wp-content/mu-plugins/acf-color-palette-demo.php",
+            "data": "<?php\n\n/**\n * Plugin Name: ACF Color Palette demo\n * Description: Shows the post colors the way a theme would: with the preset CSS variables of the stored slugs.\n */\n\n// A banner above the content, in the colors picked for the post.\nadd_filter('the_content', static function (string $content): string {\n    if (!is_singular('post') || !in_the_loop() || !is_main_query() || !function_exists('get_field')) {\n        return $content;\n    }\n\n    // Return format \"array\": slug, name and color value.\n    $accent = get_field('accent_color');\n    if (!is_array($accent)) {\n        return $content;\n    }\n\n    // Return format \"slug\": the CSS variable WordPress generates for each palette color.\n    $text = get_field('text_color') ?: 'contrast';\n\n    $banner = sprintf(\n        '<div style=\"background-color: var(--wp--preset--color--%1$s); color: var(--wp--preset--color--%2$s); padding: 1.5em; border-radius: 8px;\">'\n        . '<p style=\"margin: 0;\">This post uses the <strong>%3$s</strong> accent color (<code>%4$s</code>), with <code>var(--wp--preset--color--%1$s)</code>: change the color in the theme and the post follows.</p>'\n        . '</div>',\n        esc_attr($accent['slug']),\n        esc_attr($text),\n        esc_html($accent['name']),\n        esc_html($accent['color'])\n    );\n\n    return $banner . $content;\n});\n\n"
+        },
+        {
+            "step": "runPHP",
+            "code": "<?php\n\nrequire '/wordpress/wp-load.php';\n\n// Fail loudly: a partial setup should stop the Blueprint, not leave a half-built demo.\n$check = static function ($result, string $what) {\n    if (!$result || is_wp_error($result)) {\n        throw new RuntimeException(\"Could not create {$what}: \" . (is_wp_error($result) ? $result->get_error_message() : 'unknown error'));\n    }\n\n    return $result;\n};\n\n// Field groups are stored in the database, so they are editable under ACF > Field Groups.\n$check(acf_import_field_group([\n    'key' => 'group_post_colors',\n    'title' => 'Post colors',\n    'position' => 'side',\n    'fields' => [\n        [\n            'key' => 'field_accent_color',\n            'name' => 'accent_color',\n            'label' => 'Accent color',\n            'instructions' => 'The palettes of the block editor color picker.',\n            'type' => 'color_palette',\n            'return_format' => 'array',\n            'required' => 1,\n        ],\n        [\n            'key' => 'field_text_color',\n            'name' => 'text_color',\n            'label' => 'Text color',\n            'instructions' => 'Only two colors of the theme palette.',\n            'type' => 'color_palette',\n            'palettes' => ['theme'],\n            'include_colors' => ['base', 'contrast'],\n            'return_format' => 'slug',\n            'allow_null' => 1,\n        ],\n    ],\n    'location' => [[['param' => 'post_type', 'operator' => '==', 'value' => 'post']]],\n]), 'the field group');\n\n$posts = [\n    ['A yellow post', 'accent-1', 'contrast'],\n    ['A pink post', 'accent-2', 'contrast'],\n    ['A purple post', 'accent-3', 'base'],\n];\n\nforeach ($posts as $i => [$title, $accent, $text]) {\n    $post_id = $check(wp_insert_post([\n        'import_id' => 1000 + $i,\n        'post_title' => $title,\n        'post_content' => '<!-- wp:paragraph --><p>Edit this post to pick other colors in the \"Post colors\" box of the sidebar.</p><!-- /wp:paragraph -->',\n        'post_status' => 'publish',\n        'post_author' => 1,\n    ], true), \"the {$title} post\");\n\n    update_field('field_accent_color', $accent, $post_id);\n    update_field('field_text_color', $text, $post_id);\n}\n\n// The default \"Hello world!\" post has no colors.\nwp_delete_post(1, true);\n"
+        },
+        {
+            "step": "runPHP",
+            "code": "<?php\n\n// Admin Columns only boots in wp-admin, and exposes its container on \"ac/init\".\n// A pre-initialized hook captures it before WordPress loads.\n$GLOBALS['wp_filter']['ac/init'][10][] = [\n    'function' => static function ($container): void {\n        $GLOBALS['ac_container'] = $container;\n    },\n    'accepted_args' => 1,\n];\ndefine('WP_ADMIN', true);\nrequire '/wordpress/wp-load.php';\nrequire_once ABSPATH . 'wp-admin/includes/admin.php';\n\nif (!isset($GLOBALS['ac_container'])) {\n    throw new RuntimeException('Admin Columns did not boot.');\n}\n\nwp_set_current_user(1);\n$container = $GLOBALS['ac_container'];\n\n// Original columns are normally captured on the first visit of the list table.\n// Admin Columns caches them when it boots: store them in this request, read them in the next one.\nset_current_screen('edit-post');\n$headings = _get_list_table('WP_Posts_List_Table', ['screen' => 'edit-post'])->get_columns();\n$container->get(AC\\Storage\\Repository\\OriginalColumnsRepository::class)\n    ->update(new AC\\Type\\TableId('post'), AC\\Type\\OriginalColumns::create_from_headings($headings));\n"
+        },
+        {
+            "step": "runPHP",
+            "code": "<?php\n\n// Admin Columns only boots in wp-admin, and exposes its container on \"ac/init\".\n// A pre-initialized hook captures it before WordPress loads.\n$GLOBALS['wp_filter']['ac/init'][10][] = [\n    'function' => static function ($container): void {\n        $GLOBALS['ac_container'] = $container;\n    },\n    'accepted_args' => 1,\n];\ndefine('WP_ADMIN', true);\nrequire '/wordpress/wp-load.php';\nrequire_once ABSPATH . 'wp-admin/includes/admin.php';\n\nif (!isset($GLOBALS['ac_container'])) {\n    throw new RuntimeException('Admin Columns did not boot.');\n}\n\nwp_set_current_user(1);\n$container = $GLOBALS['ac_container'];\n\n// Same steps as the \"Add column\" button Admin Columns adds to ACF field settings:\n// the table's original columns, plus one column per ACF field.\n$table_screen = $container->get(AC\\TableScreenFactory::class)->create(new AC\\Type\\TableId('post'));\n$columns = $container->get(AC\\ColumnTypeRepository::class)->find_all_original($table_screen);\nif (count($columns) === 0) {\n    throw new RuntimeException('The original post columns are missing.');\n}\nforeach (['accent_color', 'text_color'] as $name) {\n    $column = $container->get(AC\\Acf\\AcfColumnFactory::class)->create($table_screen, acf_get_field($name));\n    if (!$column) {\n        throw new RuntimeException(\"No Admin Columns column for the {$name} field.\");\n    }\n    $columns->add($column);\n}\n\n$container->get(AC\\ListScreenRepository\\Storage::class)->save(new AC\\ListScreen(\n    $container->get(AC\\Type\\ListScreenIdGenerator::class)->generate(),\n    $table_screen->get_labels()->get_singular(),\n    $table_screen,\n    $columns\n));\n"
+        },
+        {
+            "step": "updateUserMeta",
+            "userId": 1,
+            "meta": {
+                "wp_persisted_preferences": {
+                    "core/edit-post": {
+                        "welcomeGuide": false
+                    }
+                }
+            }
+        }
+    ]
+}

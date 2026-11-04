@@ -1,63 +1,53 @@
 import { colord, extend } from 'colord';
 import a11yPlugin from 'colord/plugins/a11y';
 
-( ( $, undefined ) => {
+( ( $ ) => {
 	extend( [ a11yPlugin ] );
 
 	const Field = acf.Field.extend( {
 		type: 'color_palette',
 		wait: 'ready',
 		events: {
-			duplicateField: 'onDuplicate',
 			'change input[type="radio"]': 'onChange',
 			'click .components-circular-option-picker__clear': 'onClear',
 		},
-		$indicator: function () {
+		$indicator() {
 			return this.$( '.component-color-indicator' );
 		},
-		$input: function () {
-			return this.$( 'input:checked' );
+		$input() {
+			return this.$( 'input[type="radio"]:checked' );
 		},
-		initialize: function () {
+		initialize() {
 			this.setColor( this.$input() );
 		},
-		onChange: function ( e, $input ) {
+		onChange( e, $input ) {
 			this.setColor( $input );
 		},
-		// onDuplicate: function ( e, $el, $duplicate ) {
-		// 	// Fix duplicate until issue is resolved: https://github.com/AdvancedCustomFields/acf/issues/616
-		// 	$duplicate
-		// 		.find( '.components-circular-option-picker__option-wrapper' )
-		// 		.each( function ( i, $el ) {
-		// 			const $this = $( this );
-		// 			const $input = $this.find( 'input[type="radio"]' );
-		// 			const $label = $this.find( 'label' );
-		// 			$label.attr( 'for', $input.attr( 'id' ) );
-		// 		} );
-		// },
-		onClear: function ( e, $button ) {
+		onClear( e ) {
 			e.preventDefault();
-			// Clear checkboxes
 			this.$input().prop( 'checked', false );
-			// Remove indicator
 			this.$indicator().removeAttr( 'style' );
 		},
-		setColor: function ( $input ) {
-			const $colorWrapper = $input.parent();
-			const color = $colorWrapper.attr( 'data-color' );
-			const $icon = $colorWrapper.find( 'svg' );
-			const colordColor = colord( color );
+		setColor( $input ) {
+			if ( ! $input.length ) {
+				return;
+			}
 
-			// Set indicator color
+			const $wrapper = $input.parent();
+			const color = $wrapper.attr( 'data-color' );
+			const parsed = colord( color );
+
 			this.$indicator().css( 'background-color', color );
 
-			// Set icon color depending on contrast
-			$icon.attr(
-				'fill',
-				colordColor.contrast() > colordColor.contrast( '#000' )
-					? '#fff'
-					: '#000'
-			);
+			// Checkmark with the best contrast against the swatch.
+			$wrapper
+				.find( 'svg' )
+				.attr(
+					'fill',
+					parsed.contrast() > parsed.contrast( '#000' )
+						? '#fff'
+						: '#000'
+				);
 		},
 	} );
 	acf.registerFieldType( Field );
