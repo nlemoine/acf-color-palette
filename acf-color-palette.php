@@ -5,7 +5,7 @@
  * Plugin URI:        https://github.com/nlemoine/acf-color-palette
  * Description:       A Gutenberg-like color palette field for ACF, using the colors of the theme.json palettes.
  * x-release-please-start-version
- * Version:           0.2.0
+ * Version:           1.0.0
  * x-release-please-end
  * Requires at least: 6.0
  * Requires PHP:      8.3
