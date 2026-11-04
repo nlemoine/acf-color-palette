@@ -1,5 +1,5 @@
 {
-    "name": "hellonico/acf-color-palette",
+    "name": "n5s/acf-color-palette",
     "description": "A Gutenberg-like color palette field for ACF.",
     "license": "MIT",
     "type": "wordpress-plugin",
