@@ -41,11 +41,15 @@ Tests use [Mantle Testkit](https://mantle.alley.com/docs/testing) and run agains
 
 Tests replace the theme palette with their own, whatever the active theme.
 
-Tests of ACF PRO fields (repeater rows in WPGraphQL) are skipped with the free ACF. ACF PRO is not on a public repository: to run them, point `ACF_COLOR_PALETTE_ACF_PRO` to a local copy of the plugin.
+Tests of ACF PRO fields (repeater rows in WPGraphQL) are skipped with the free ACF. ACF PRO comes from the [WP Engine Composer repository](https://www.advancedcustomfields.com/resources/installing-acf-pro-with-composer/), declared in `composer.json` but not required, so installs without a license keep working. With a license, add your credentials to `COMPOSER_AUTH` (or an `auth.json` file, ignored by Git), install ACF PRO without committing the change, and run the tests with it:
 
 ```bash
-ACF_COLOR_PALETTE_ACF_PRO=/path/to/advanced-custom-fields-pro composer test
+export COMPOSER_AUTH='{"http-basic": {"connect.advancedcustomfields.com": {"username": "<license key>", "password": "<site URL>"}}}'
+composer require --dev --no-update wpengine/advanced-custom-fields-pro:^6 && composer update wpengine/advanced-custom-fields-pro
+composer test:acf-pro
 ```
+
+In CI, the "Tests (ACF PRO)" job does the same when the `COMPOSER_AUTH` secret is set, and is skipped otherwise.
 
 ```bash
 composer test

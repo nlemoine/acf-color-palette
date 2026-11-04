@@ -47,6 +47,14 @@
     },
     "repositories": [
         {
+            "name": "acf-pro",
+            "type": "composer",
+            "url": "https://connect.advancedcustomfields.com",
+            "only": [
+                "wpengine/*"
+            ]
+        },
+        {
             "name": "wp-packages",
             "type": "composer",
             "url": "https://repo.wp-packages.org",
@@ -92,6 +100,10 @@
             "@test:core",
             "@test:wpgraphql",
             "@test:admin-columns"
+        ],
+        "test:acf-pro": [
+            "@putenv ACF_COLOR_PALETTE_ACF=pro",
+            "@test"
         ],
         "test:admin-columns": [
             "@putenv ACF_COLOR_PALETTE_TEST_INTEGRATION=admin-columns",
