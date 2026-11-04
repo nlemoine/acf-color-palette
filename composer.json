@@ -1,13 +1,14 @@
 {
     "name": "n5s/acf-color-palette",
-    "description": "A Gutenberg-like color palette field for ACF.",
+    "description": "Color palette field for ACF: pick a color from the theme.json palettes, the way the block editor does. Stores the slug, so the value follows the theme.",
     "license": "MIT",
     "type": "wordpress-plugin",
     "keywords": [
-        "advanced custom fields",
         "acf",
         "acf-field",
+        "advanced-custom-fields",
         "color-palette",
+        "theme-json",
         "wordpress",
         "wordpress-plugin"
     ],
@@ -21,10 +22,16 @@
     "homepage": "https://github.com/nlemoine/acf-color-palette",
     "support": {
         "issues": "https://github.com/nlemoine/acf-color-palette/issues",
-        "source": "https://github.com/nlemoine/acf-color-palette.git",
+        "source": "https://github.com/nlemoine/acf-color-palette",
         "security": "https://github.com/nlemoine/acf-color-palette/security/policy",
         "changelog": "https://github.com/nlemoine/acf-color-palette/releases"
     },
+    "funding": [
+        {
+            "type": "opencollective",
+            "url": "https://opencollective.com/n5s"
+        }
+    ],
     "require": {
         "php": "^8.3"
     },

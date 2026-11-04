@@ -3,7 +3,7 @@
 /**
  * Plugin Name:       Advanced Custom Fields: ACF Color Palette
  * Plugin URI:        https://github.com/nlemoine/acf-color-palette
- * Description:       A Gutenberg-like color palette field for ACF, using the colors of the theme.json palettes.
+ * Description:       Color palette field for ACF: pick a color from the theme.json palettes, the way the block editor does. Stores the slug, so the value follows the theme.
  * x-release-please-start-version
  * Version:           1.0.0
  * x-release-please-end
