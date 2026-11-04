@@ -16,6 +16,8 @@ Install `acf-color-palette.zip` from the release assets. The "Source code" archi
 
 ## Composer installs
 
+The Composer package was renamed from `hellonico/acf-color-palette` to `n5s/acf-color-palette`: run `composer remove hellonico/acf-color-palette`, then `composer require n5s/acf-color-palette:^1.0`. The plugin directory is still `acf-color-palette`.
+
 0.x worked without an autoloader: the plugin file required its own class. 1.0 needs the site to load Composer's `vendor/autoload.php`, which Bedrock and similar setups already do. Otherwise the plugin shows an admin notice and stays inactive.
 
 ## Asset handles
