@@ -57,6 +57,36 @@ jobs:
           composer-options: ${{ matrix.experimental && '--ignore-platform-req=php+' || '' }}
       - run: composer test
 
+  # ACF PRO fields (repeater rows in WPGraphQL). Skipped without the COMPOSER_AUTH secret, as on pull requests from forks.
+  acf-pro:
+    name: Tests (ACF PRO)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # {"http-basic": {"connect.advancedcustomfields.com": {"username": "<license key>", "password": "<site URL>"}}}
+      COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
+    steps:
+      - name: Skip without ACF PRO credentials
+        if: env.COMPOSER_AUTH == ''
+        run: echo "::notice::COMPOSER_AUTH is not set, ACF PRO tests are skipped."
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: env.COMPOSER_AUTH != ''
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        if: env.COMPOSER_AUTH != ''
+        with:
+          php-version: '8.4'
+          coverage: none
+      # Not in composer.json: installs without the license must keep working.
+      - name: Require ACF PRO
+        if: env.COMPOSER_AUTH != ''
+        run: composer require --dev --no-update wpengine/advanced-custom-fields-pro:^6
+      - uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0
+        if: env.COMPOSER_AUTH != ''
+      - if: env.COMPOSER_AUTH != ''
+        run: composer test:acf-pro
+
   coverage:
     runs-on: ubuntu-latest
     timeout-minutes: 15

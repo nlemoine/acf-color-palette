@@ -2,6 +2,8 @@
 /vendor
 /package-lock.json
 composer.lock
+# Composer credentials, such as the ACF PRO license.
+/auth.json
 /wp-content
 
 /tmp

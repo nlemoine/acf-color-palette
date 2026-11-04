@@ -112,7 +112,7 @@ final class GraphqlTest extends TestCase
     public function testResolvesRepeaterRows(string $format): void
     {
         if (!\class_exists('acf_field_repeater')) {
-            $this->markTestSkipped('Needs ACF PRO: set ACF_COLOR_PALETTE_ACF_PRO to its directory.');
+            $this->markTestSkipped('Needs ACF PRO: run composer test:acf-pro.');
         }
 
         $field = $this->registerField(
