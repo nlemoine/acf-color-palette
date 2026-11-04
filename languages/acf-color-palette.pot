@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-04T12:29:22+00:00\n"
+"POT-Creation-Date: 2026-11-04T13:53:05+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: acf-color-palette\n"
@@ -43,68 +43,78 @@ msgstr ""
 msgid "ACF Color Palette could not load its classes. Install the plugin from the acf-color-palette.zip release asset, or load Composer's vendor/autoload.php."
 msgstr ""
 
-#: src/Field/ColorPaletteField.php:53
+#: src/Field/ColorPaletteField.php:52
 msgid "Color Palette"
 msgstr ""
 
-#: src/Field/ColorPaletteField.php:55
+#: src/Field/ColorPaletteField.php:54
 msgid "Pick a color from the theme.json color palettes, like the block editor color picker."
 msgstr ""
 
 #. translators: %s: color name
-#: src/Field/ColorPaletteField.php:124
+#: src/Field/ColorPaletteField.php:123
 #, php-format
 msgid "Color: %s"
 msgstr ""
 
-#: src/Field/ColorPaletteField.php:172
+#: src/Field/ColorPaletteField.php:171
 msgid "Color palettes"
 msgstr ""
 
-#: src/Field/ColorPaletteField.php:173
+#: src/Field/ColorPaletteField.php:172
 msgid "The palettes to show. Leave empty to show the palettes of the block editor color picker."
 msgstr ""
 
-#: src/Field/ColorPaletteField.php:183
+#: src/Field/ColorPaletteField.php:182
 msgid "Include colors"
 msgstr ""
 
-#: src/Field/ColorPaletteField.php:184
+#: src/Field/ColorPaletteField.php:183
 msgid "Only show these colors. Leave empty to show all of them."
 msgstr ""
 
-#: src/Field/ColorPaletteField.php:190
-#: src/Field/ColorPaletteField.php:202
+#: src/Field/ColorPaletteField.php:189
+#: src/Field/ColorPaletteField.php:201
 msgid "Select colors (optional)"
 msgstr ""
 
-#: src/Field/ColorPaletteField.php:195
+#: src/Field/ColorPaletteField.php:194
 msgid "Exclude colors"
 msgstr ""
 
-#: src/Field/ColorPaletteField.php:196
+#: src/Field/ColorPaletteField.php:195
 msgid "Hide these colors."
 msgstr ""
 
 #. translators: %s: the submitted color slug
-#: src/Field/ColorPaletteField.php:280
+#: src/Field/ColorPaletteField.php:281
 #, php-format
 msgid "%s is not a valid color"
 msgstr ""
 
-#: src/Integration/WpGraphQl.php:39
+#. translators: %s: the field name
+#: src/Field/ColorPaletteField.php:330
+#, php-format
+msgid "%s is not one of the colors of the field."
+msgstr ""
+
+#: src/Field/ColorPaletteField.php:382
+msgid "Current color"
+msgstr ""
+
+#: src/Integration/WpGraphQl.php:41
 msgid "A color selected in an ACF Color Palette field."
 msgstr ""
 
-#: src/Integration/WpGraphQl.php:43
+#: src/Integration/WpGraphQl.php:45
 msgid "Color slug, as in the --wp--preset--color--<slug> CSS variable."
 msgstr ""
 
-#: src/Integration/WpGraphQl.php:47
+#: src/Integration/WpGraphQl.php:49
 msgid "Color name, null for a color no longer in the palettes."
 msgstr ""
 
-#: src/Integration/WpGraphQl.php:51
+#: src/Integration/WpGraphQl.php:53
 msgid "Color value, null for a color no longer in the palettes."
 msgstr ""
 

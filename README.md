@@ -19,7 +19,7 @@ The field shows up to three palettes, as the block editor does:
 
 When no palette is selected in the field settings, the field shows the palettes of the block editor color picker: the default palette is hidden when the theme sets `settings.color.defaultPalette` to `false`, as Twenty Twenty-Five does.
 
-The field stores the color slug, not its value: when the theme changes a color, fields using it follow.
+The field stores the color slug, not its value: when the theme changes a color, fields using it follow. A stored color the field settings no longer include stays selected, in a "Current color" group.
 
 The swatches are radio buttons: <kbd>Tab</kbd> moves to the selected color, arrow keys pick another one.
 
@@ -63,7 +63,7 @@ When a slug exists in several palettes, the field resolves it like this CSS vari
 
 ### Integrations
 
-- **REST API**: the field schema lists the slugs of the field colors, and other values are rejected.
+- **REST API**: the field schema lists the slugs of the field colors, and other values are rejected. `null` empties a field that is not required.
 - **[Admin Columns](https://wordpress.org/plugins/codepress-admin-columns/) 7+** (free or Pro): custom field columns show a color swatch and the color name.
 - **[WPGraphQL for ACF](https://wordpress.org/plugins/wpgraphql-acf/) 2+**: color palette fields are exposed as an `AcfColorPaletteColor` object (`slug`, `name`, `color`), whatever the field's return format. `name` and `color` are `null` for a color no longer in the palettes.
 

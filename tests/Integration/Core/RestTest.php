@@ -10,18 +10,27 @@ final class RestTest extends TestCase
 {
     public function testSchemaListsTheFieldColors(): void
     {
-        $field = $this->registerField(['palettes' => ['theme']]);
+        $field = $this->registerField(['palettes' => ['theme'], 'required' => 1]);
 
         $schema = $this->fieldType()->get_rest_schema($field);
 
         $this->assertSame(['primary', 'secondary', 'light'], $schema['enum']);
     }
 
-    public function testSchemaAllowsNullWhenTheFieldDoes(): void
+    public function testSchemaAllowsNullWhenTheFieldIsNotRequired(): void
     {
-        $field = $this->registerField(['palettes' => ['theme'], 'allow_null' => 1]);
+        $field = $this->registerField(['palettes' => ['theme']]);
 
-        $this->assertContains(null, $this->fieldType()->get_rest_schema($field)['enum']);
+        $this->assertSame(['primary', 'secondary', 'light', null], $this->fieldType()->get_rest_schema($field)['enum']);
+    }
+
+    public function testSchemaDropsADefaultTheFieldDoesNotShow(): void
+    {
+        $shown = $this->registerField(['palettes' => ['theme'], 'default_value' => 'primary']);
+        $hidden = $this->registerField(['palettes' => ['theme'], 'default_value' => 'vivid-red']);
+
+        $this->assertSame('primary', $this->fieldType()->get_rest_schema($shown)['default']);
+        $this->assertArrayNotHasKey('default', $this->fieldType()->get_rest_schema($hidden));
     }
 
     public function testWritesAColor(): void
@@ -54,14 +63,21 @@ final class RestTest extends TestCase
 
         $this->assertTrue($this->fieldType()->validate_rest_value(true, 'primary', $field));
         $this->assertInstanceOf(\WP_Error::class, $this->fieldType()->validate_rest_value(true, 'vivid-red', $field));
-        $this->assertInstanceOf(\WP_Error::class, $this->fieldType()->validate_rest_value(true, null, $field));
+        $this->assertInstanceOf(\WP_Error::class, $this->fieldType()->validate_rest_value(true, '', $field));
     }
 
-    public function testAcceptsNullWhenTheFieldAllowsIt(): void
+    public function testEmptiesAFieldThatIsNotRequired(): void
     {
-        $field = $this->registerField(['palettes' => ['theme'], 'allow_null' => 1]);
+        $this->assertTrue($this->fieldType()->validate_rest_value(true, null, $this->registerField()));
+        $this->assertInstanceOf(\WP_Error::class, $this->fieldType()->validate_rest_value(true, null, $this->registerField(['required' => 1])));
+    }
 
-        $this->assertTrue($this->fieldType()->validate_rest_value(true, null, $field));
+    public function testRejectsEveryColorWhenTheFieldHasNone(): void
+    {
+        // No custom palette in the tests.
+        $field = $this->registerField(['palettes' => ['custom']]);
+
+        $this->assertInstanceOf(\WP_Error::class, $this->fieldType()->validate_rest_value(true, 'primary', $field));
     }
 
     public function testKeepsAnEarlierValidationError(): void

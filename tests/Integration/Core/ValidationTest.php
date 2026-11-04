@@ -38,12 +38,13 @@ final class ValidationTest extends TestCase
         $this->assertSame('unknown is not a valid color', $this->fieldType()->validate_value(true, 'unknown', $field, 'acf[field]'));
     }
 
-    public function testRejectsAColorTheFieldDoesNotShow(): void
+    public function testAcceptsAColorTheFieldNoLongerShows(): void
     {
+        // The field shows the stored color in its own group: saving the post keeps it.
         $field = $this->registerField(['palettes' => ['theme'], 'exclude_colors' => ['light']]);
 
-        $this->assertSame('vivid-red is not a valid color', $this->fieldType()->validate_value(true, 'vivid-red', $field, 'acf[field]'));
-        $this->assertSame('light is not a valid color', $this->fieldType()->validate_value(true, 'light', $field, 'acf[field]'));
+        $this->assertTrue($this->fieldType()->validate_value(true, 'vivid-red', $field, 'acf[field]'));
+        $this->assertTrue($this->fieldType()->validate_value(true, 'light', $field, 'acf[field]'));
     }
 
     public function testRejectsANonStringValue(): void

@@ -41,6 +41,12 @@ Tests use [Mantle Testkit](https://mantle.alley.com/docs/testing) and run agains
 
 Tests replace the theme palette with their own, whatever the active theme.
 
+Tests of ACF PRO fields (repeater rows in WPGraphQL) are skipped with the free ACF. ACF PRO is not on a public repository: to run them, point `ACF_COLOR_PALETTE_ACF_PRO` to a local copy of the plugin.
+
+```bash
+ACF_COLOR_PALETTE_ACF_PRO=/path/to/advanced-custom-fields-pro composer test
+```
+
 ```bash
 composer test
 ```

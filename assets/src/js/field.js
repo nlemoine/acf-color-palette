@@ -37,7 +37,8 @@ import a11yPlugin from 'colord/plugins/a11y';
 			const color = $wrapper.attr( 'data-color' );
 			const parsed = colord( color );
 
-			this.$indicator().css( 'background-color', color );
+			// The shorthand also drops the "no color" stripe of the block editor indicator.
+			this.$indicator().css( 'background', color );
 
 			// Checkmark with the best contrast against the swatch.
 			$wrapper

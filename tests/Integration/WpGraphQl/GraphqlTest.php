@@ -69,15 +69,89 @@ final class GraphqlTest extends TestCase
         $this->assertSame(['slug' => 'removed', 'name' => null, 'color' => null], $this->color($postId));
     }
 
-    public function testResolvesAFormattedRow(): void
+    /**
+     * @return iterable<string, array{string, mixed}>
+     */
+    public static function formattedRowValues(): iterable
     {
-        $integration = Plugin::getInstance()->getContainer()->get(WpGraphQl::class);
+        yield 'slug' => [ReturnFormat::Slug->value, 'light'];
+        yield 'array' => [ReturnFormat::Array->value, ['name' => 'Light', 'slug' => 'light', 'color' => '#f8f9fa']];
+        yield 'name' => [ReturnFormat::Name->value, 'Light'];
+        yield 'color' => [ReturnFormat::Color->value, '#f8f9fa'];
+    }
 
+    /**
+     * Rows of repeater, flexible content and clone fields pass the formatted value down.
+     */
+    #[DataProvider('formattedRowValues')]
+    public function testResolvesAFormattedRowValue(string $format, mixed $value): void
+    {
         $this->assertSame(
             ['slug' => 'light', 'name' => 'Light', 'color' => '#f8f9fa'],
-            $integration->resolve(['name' => 'Light', 'slug' => 'light', 'color' => '#f8f9fa'])
+            $this->integration()->resolve($value, ['return_format' => $format])
         );
-        $this->assertNull($integration->resolve(['primary']));
+    }
+
+    public function testPrefersTheStoredValueOfTheRow(): void
+    {
+        // Two colors named the same: only the stored value tells them apart.
+        $this->useThemePalette([...self::THEME_PALETTE, ['name' => 'Light', 'slug' => 'light-alt', 'color' => '#eeeeee']]);
+        $field = ['key' => 'field_row_color', 'return_format' => ReturnFormat::Name->value];
+
+        $this->assertSame('light-alt', $this->integration()->resolve('Light', $field, ['__wpgraphql_acf_raw_row' => ['field_row_color' => 'light-alt']])['slug'] ?? null);
+        $this->assertSame('light', $this->integration()->resolve('Light', $field)['slug'] ?? null);
+    }
+
+    public function testResolvesNothingForAnInvalidValue(): void
+    {
+        $this->assertNull($this->integration()->resolve(['primary']));
+        $this->assertNull($this->integration()->resolve(1));
+    }
+
+    #[DataProvider('returnFormats')]
+    public function testResolvesRepeaterRows(string $format): void
+    {
+        if (!\class_exists('acf_field_repeater')) {
+            $this->markTestSkipped('Needs ACF PRO: set ACF_COLOR_PALETTE_ACF_PRO to its directory.');
+        }
+
+        $field = $this->registerField(
+            [
+                'name' => 'rows',
+                'type' => 'repeater',
+                'show_in_graphql' => 1,
+                'graphql_field_name' => 'rows',
+                'sub_fields' => [
+                    [
+                        'key' => 'field_row_color_' . $format,
+                        'name' => 'color',
+                        'label' => 'Color',
+                        'type' => 'color_palette',
+                        'return_format' => $format,
+                        'show_in_graphql' => 1,
+                        'graphql_field_name' => 'color',
+                    ],
+                ],
+            ],
+            ['show_in_graphql' => 1, 'graphql_field_name' => 'colorDetails']
+        );
+        \WPGraphQL::clear_schema();
+        $postId = self::factory()->post->create(['post_status' => 'publish']);
+        \update_field($field['key'], [['field_row_color_' . $format => 'light'], ['field_row_color_' . $format => 'primary']], $postId);
+
+        $result = \graphql([
+            'query' => 'query ($id: ID!) { post(id: $id, idType: DATABASE_ID) { colorDetails { rows { color { slug name color } } } } }',
+            'variables' => ['id' => $postId],
+        ]);
+
+        $this->assertArrayNotHasKey('errors', $result, (string) \json_encode($result['errors'] ?? []));
+        $this->assertSame(
+            [
+                ['color' => ['slug' => 'light', 'name' => 'Light', 'color' => '#f8f9fa']],
+                ['color' => ['slug' => 'primary', 'name' => 'Primary', 'color' => '#0d6efd']],
+            ],
+            $result['data']['post']['colorDetails']['rows']
+        );
     }
 
     public function testSchemaDeclaresTheType(): void
@@ -92,6 +166,11 @@ final class GraphqlTest extends TestCase
         $names = \array_column($result['data']['__type']['fields'] ?? [], 'name');
         \sort($names);
         $this->assertSame(['color', 'name', 'slug'], $names);
+    }
+
+    private function integration(): WpGraphQl
+    {
+        return Plugin::getInstance()->getContainer()->get(WpGraphQl::class);
     }
 
     /**
