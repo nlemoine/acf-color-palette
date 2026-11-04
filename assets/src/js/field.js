@@ -25,8 +25,17 @@ import a11yPlugin from 'colord/plugins/a11y';
 		},
 		onClear( e ) {
 			e.preventDefault();
-			this.$input().prop( 'checked', false );
+			const $input = this.$input();
+			if ( ! $input.length ) {
+				return;
+			}
+
+			$input.prop( 'checked', false );
 			this.$indicator().removeAttr( 'style' );
+
+			// Unchecking a radio fires no change event: ACF (unsaved changes, change_field, conditional logic)
+			// listens to change events in the field, so fire one on the hidden input, which holds the empty value.
+			this.$( 'input[type="hidden"]' ).trigger( 'change' );
 		},
 		setColor( $input ) {
 			if ( ! $input.length ) {
