@@ -1,7 +1,7 @@
 # ACF Color Palette field
 
 [![Latest Version](https://img.shields.io/packagist/v/n5s/acf-color-palette.svg?style=flat-square)](https://github.com/nlemoine/acf-color-palette/releases)
-[![Packagist](https://img.shields.io/packagist/dt/n5s/acf-color-palette.svg?style=flat-square)](https://packagist.org/packages/n5s/acf-color-palette)
+[![Packagist](https://img.shields.io/packagist/dt/n5s/acf-color-palette.svg?style=flat-square)](https://packagist.org/packages/n5s/acf-color-palette/stats)
 [![Coverage](https://img.shields.io/codecov/c/github/nlemoine/acf-color-palette/main?style=flat-square)](https://codecov.io/gh/nlemoine/acf-color-palette)
 [![Try in WordPress Playground](https://img.shields.io/badge/Try%20in-WordPress%20Playground-3858e9?style=flat-square&logo=wordpress)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/nlemoine/acf-color-palette/main/blueprint.json)
 
