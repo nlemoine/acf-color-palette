@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/nlemoine/acf-color-palette/compare/1.0.0...1.0.1) (2026-11-05)
+
+
+### Bug Fixes
+
+* space the color indicator from the field label ([5d18e9b](https://github.com/nlemoine/acf-color-palette/commit/5d18e9b55c873f3f287e841cf6acf8786a3fe6df))
+
 ## [1.0.0](https://github.com/nlemoine/acf-color-palette/compare/0.1.0...1.0.0) (2026-11-04)
 
 
