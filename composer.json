@@ -28,8 +28,8 @@
     },
     "funding": [
         {
-            "type": "opencollective",
-            "url": "https://opencollective.com/n5s"
+            "type": "github",
+            "url": "https://github.com/sponsors/nlemoine"
         }
     ],
     "require": {
