@@ -16,12 +16,14 @@ concurrency:
 jobs:
   # Coding standards, PHPStan, Rector and composer test on every supported PHP version.
   qa:
-    uses: nlemoine/.github/.github/workflows/php-qa.yml@86cd0721e5d8f35eb32214f4853f52974093264c # main as of 2026-11-26
+    uses: nlemoine/.github/.github/workflows/php-qa.yml@3d5d2fcb70a4e3c6bab9e6931de5becad8cad8ed # release-please-outputs, nlemoine/.github#6
     permissions:
       contents: read
     with:
       cs-tool: phpcs
       extra-stan-args: --memory-limit=-1
+      # The only runtime requirement is PHP, and the Mantle test packages resolve to incompatible lowest versions.
+      test-lowest: false
       # Its coverage leg runs the default suites only: the coverage job below runs one process per integration.
       coverage: false
 
