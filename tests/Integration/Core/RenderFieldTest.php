@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace n5s\AcfColorPalette\Tests\Integration\Core;
 
+use Mantle\Support\HTML;
 use n5s\AcfColorPalette\Tests\TestCase;
 
 use function Mantle\Support\Helpers\capture;
@@ -15,7 +16,7 @@ final class RenderFieldTest extends TestCase
     {
         $field = $this->registerField(['palettes' => ['theme']]);
 
-        $html = html_string($this->renderField($field));
+        $html = $this->html($this->renderField($field));
 
         $html->assertQuerySelectorCount('input[type="radio"]', 3);
         $wrapper = $html->first_by_selector('.components-circular-option-picker__option-wrapper');
@@ -26,7 +27,7 @@ final class RenderFieldTest extends TestCase
 
     public function testFocusesTheRadiosNotTheSwatches(): void
     {
-        $html = html_string($this->renderField($this->registerField(['palettes' => ['theme']])));
+        $html = $this->html($this->renderField($this->registerField(['palettes' => ['theme']])));
 
         // Radios are named and reachable with the keyboard; swatches are not a second tab stop.
         $this->assertSame('Color: Primary', $html->first_by_selector('input[type="radio"]')->get_attribute('aria-label'));
@@ -38,7 +39,7 @@ final class RenderFieldTest extends TestCase
         $field = $this->registerField(['palettes' => ['theme']]);
         $field['value'] = 'secondary';
 
-        $html = html_string($this->renderField($field));
+        $html = $this->html($this->renderField($field));
 
         $html->assertQuerySelectorCount('input[type="radio"][checked]', 1);
         $this->assertSame('checked', $html->first_by_selector('input[value="secondary"]')->get_attribute('checked'));
@@ -48,7 +49,7 @@ final class RenderFieldTest extends TestCase
     {
         $field = $this->registerField();
 
-        $html = html_string($this->renderField($field));
+        $html = $this->html($this->renderField($field));
 
         // A single hidden input, before every radio: a checked color in any palette is submitted.
         $html->assertQuerySelectorCount('input[type="hidden"][name="' . $field['name'] . '"]', 1);
@@ -58,7 +59,7 @@ final class RenderFieldTest extends TestCase
 
     public function testShowsPaletteHeadingsWithSeveralPalettes(): void
     {
-        $html = html_string($this->renderField($this->registerField()));
+        $html = $this->html($this->renderField($this->registerField()));
 
         $html->assertQuerySelectorCount('.acf-color-palette-item', 2);
         $html->assertQuerySelectorCount('.components-heading', 2);
@@ -67,7 +68,7 @@ final class RenderFieldTest extends TestCase
 
     public function testHidesTheHeadingWithASinglePalette(): void
     {
-        $html = html_string($this->renderField($this->registerField(['palettes' => ['default']])));
+        $html = $this->html($this->renderField($this->registerField(['palettes' => ['default']])));
 
         $html->assertQuerySelectorCount('.acf-color-palette-item', 1);
         $html->assertQuerySelectorMissing('.components-heading');
@@ -80,7 +81,7 @@ final class RenderFieldTest extends TestCase
         $field = $this->registerField(['palettes' => ['theme', 'default']]);
         $field['value'] = 'black';
 
-        $html = html_string($this->renderField($field));
+        $html = $this->html($this->renderField($field));
 
         $ids = [];
         foreach ($html->get_by_selector('input[type="radio"][value="black"]') as $input) {
@@ -101,7 +102,7 @@ final class RenderFieldTest extends TestCase
             ['slug' => 'brandprimary', 'name' => 'Other brand', 'color' => '#456'],
         ]);
 
-        $html = html_string($this->renderField($this->registerField(['palettes' => ['theme']])));
+        $html = $this->html($this->renderField($this->registerField(['palettes' => ['theme']])));
 
         $ids = [];
         foreach ($html->get_by_selector('input[type="radio"]') as $input) {
@@ -116,7 +117,7 @@ final class RenderFieldTest extends TestCase
         $field = $this->registerField(['palettes' => ['theme']]);
         $field['value'] = 'vivid-red';
 
-        $html = html_string($this->renderField($field));
+        $html = $this->html($this->renderField($field));
 
         // Checked in its own group, so that saving the post keeps it.
         $this->assertSame('checked', $html->first_by_selector('input[value="vivid-red"]')->get_attribute('checked'));
@@ -133,7 +134,7 @@ final class RenderFieldTest extends TestCase
         $field = $this->registerField(['palettes' => ['theme']]);
         $field['value'] = 'removed';
 
-        $html = html_string($this->renderField($field));
+        $html = $this->html($this->renderField($field));
 
         $html->assertQuerySelectorCount('.acf-color-palette-item', 1);
         $html->assertQuerySelectorMissing('input[type="radio"][checked]');
@@ -141,21 +142,21 @@ final class RenderFieldTest extends TestCase
 
     public function testNamesTheGroupsAfterTheField(): void
     {
-        $html = html_string($this->renderField($this->registerField(['label' => 'Accent <em>color</em>'])));
+        $html = $this->html($this->renderField($this->registerField(['label' => 'Accent <em>color</em>'])));
 
         $this->assertSame('Accent color', $html->first_by_selector('[role="group"]')->get_attribute('aria-label'));
     }
 
     public function testShowsTheClearButtonWhenNullIsAllowed(): void
     {
-        $html = html_string($this->renderField($this->registerField(['allow_null' => 1])));
+        $html = $this->html($this->renderField($this->registerField(['allow_null' => 1])));
 
         $html->assertQuerySelectorExists('.components-circular-option-picker__clear');
     }
 
     public function testHidesTheClearButtonByDefault(): void
     {
-        $html = html_string($this->renderField($this->registerField()));
+        $html = $this->html($this->renderField($this->registerField()));
 
         $html->assertQuerySelectorMissing('.components-circular-option-picker__clear');
     }
@@ -173,7 +174,7 @@ final class RenderFieldTest extends TestCase
         $field['value'] = 'primary';
 
         // Through acf_esc_html(), like ACF renders labels: the script paints the indicator.
-        $html = html_string(capture(static fn () => \acf_render_field_label($field)));
+        $html = $this->html(capture(static fn () => \acf_render_field_label($field)));
 
         $html->assertQuerySelectorCount('.component-color-indicator', 1);
         $this->assertNull($html->first_by_selector('.component-color-indicator')->get_attribute('style'));
@@ -200,6 +201,19 @@ final class RenderFieldTest extends TestCase
         $this->assertStringContainsString('>Primary</option>', $general);
 
         $this->assertStringContainsString('[allow_null]', capture(fn () => $this->fieldType()->render_field_validation_settings($field)));
+    }
+
+    /**
+     * Parse rendered markup under a single root.
+     *
+     * The field renders sibling root elements (the swatches, then the Clear
+     * button). Mantle runs selector queries relative to the first root, so
+     * with libxml2 2.14+, which keeps the roots as siblings, elements after
+     * the first root are never matched.
+     */
+    private function html(string $markup): HTML
+    {
+        return html_string("<div>{$markup}</div>");
     }
 
     /**
