@@ -5,7 +5,7 @@
  * Plugin URI:        https://github.com/nlemoine/acf-color-palette
  * Description:       Color palette field for ACF: pick a color from the theme.json palettes, the way the block editor does. Stores the slug, so the value follows the theme.
  * x-release-please-start-version
- * Version:           1.0.0
+ * Version:           1.0.1
  * x-release-please-end
  * Requires at least: 6.0
  * Requires PHP:      8.3
