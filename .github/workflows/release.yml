@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   release:
-    uses: nlemoine/.github/.github/workflows/release-please.yml@3d5d2fcb70a4e3c6bab9e6931de5becad8cad8ed # release-please-outputs, nlemoine/.github#6
+    uses: nlemoine/.github/.github/workflows/release-please.yml@6f1219ffc35c9f037495cd1e1263c0b278bf8aa6 # main as of 2026-11-26
     permissions:
       contents: write # create tags and GitHub releases, push the release branch
       pull-requests: write # open and label the release PR
